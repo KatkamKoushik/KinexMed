@@ -1,0 +1,57 @@
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# Root Databases & Local Testing Artifacts
+*.db
+*.db-shm
+*.db-wal
+kinexmed.db
+phone_db*
+current_phone*
+*.log
+
+# All image files & screenshots
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.bmp
+
+# Android Build & SDK Artifacts
+android/.gradle/
+android/.jdk17/
+android/local.properties
+android/build/
+android/app/build/
+android/.idea/
+android/*.iml
+android/app/*.iml
+*.apk
+*.aab
+*.keystore
+.cxx/
+
+# Python & Backend
+backend/.venv/
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/.pytest_cache/
+.pytest_cache/
+*.py[cod]
+*$py.class
+.coverage
+htmlcov/
+
+# Web Frontend
+web/node_modules/
+web/dist/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
