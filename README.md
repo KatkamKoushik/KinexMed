@@ -1,4 +1,4 @@
-# KinexMed — Clinical Movement Intelligence & Rehabilitation Platform
+# KinexMed — Clinical Movement Intelligence and Rehabilitation Platform
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Android](https://img.shields.io/badge/Android-API%2026%2B-3DDC84.svg?style=flat&logo=android)](https://developer.android.com)
@@ -6,13 +6,37 @@
 [![React](https://img.shields.io/badge/React-18%2B-61DAFB.svg?style=flat&logo=react)](https://react.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**KinexMed** is an edge-native, real-time physical rehabilitation observation platform. It enables patients to perform prescribed physical therapy exercises (e.g., Bilateral Squats, Sit-to-Stand) under automated clinical observation using a standard Android smartphone, while streaming validated kinematic metrics to a clinician portal.
+> Prototype developed for **iQOO Hackathon 2026 — The Hyderabad City Battle**
+
+**KinexMed** is an edge-native, real-time physical rehabilitation observation platform. It enables patients to perform prescribed physical therapy exercises (such as Bilateral Squats and Sit-to-Stand) under automated clinical observation using a standard Android smartphone, while streaming validated kinematic metrics to a clinician portal.
 
 KinexMed operates on a strict **zero-mock-data integrity** principle: all telemetry, range-of-motion measurements, and repetition timestamps originate solely from live on-device anatomical landmark geometry.
 
 ---
 
-## 🏛️ System Architecture
+## Team
+
+This prototype was built by:
+
+### Koushik Katkam
+- Email: [koushikkatkam@gmail.com](mailto:koushikkatkam@gmail.com)
+- GitHub: [https://github.com/KatkamKoushik](https://github.com/KatkamKoushik)
+- LinkedIn: [https://linkedin.com/in/koushik-katkam](https://linkedin.com/in/koushik-katkam)
+- Instagram: [https://instagram.com/koushik_katkam](https://instagram.com/koushik_katkam)
+
+### Vyshnavi Nagavelli
+- Email: [nagavellivyshnavi3@gmail.com](mailto:nagavellivyshnavi3@gmail.com)
+- GitHub: [https://github.com/nagavellivyshnavi](https://github.com/nagavellivyshnavi)
+- LinkedIn: [https://linkedin.com/in/vyshnavi-nagavelli-135465355/](https://linkedin.com/in/vyshnavi-nagavelli-135465355/)
+
+### Nivedan Katkam
+- Email: [nivedankatkam@gmail.com](mailto:nivedankatkam@gmail.com)
+- GitHub: [https://github.com/nivedankatkam](https://github.com/nivedankatkam)
+- LinkedIn: [https://www.linkedin.com/in/katkam-nivedan-442376272/](https://www.linkedin.com/in/katkam-nivedan-442376272/)
+
+---
+
+## System Architecture
 
 ```mermaid
 flowchart LR
@@ -41,19 +65,19 @@ flowchart LR
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 - **100% On-Device Edge Telemetry:** Raw camera frames are analyzed in real time on the device CPU and discarded immediately. No video stream or personal image ever leaves the smartphone.
 - **Biomechanical Angle Extraction:** Calculates true 3D Euclidean joint angles (hip-knee-ankle flexion/extension vectors) with One-Euro sub-millisecond temporal smoothing.
 - **Clinical Evidence Engine:** Assesses bounding box containment, joint confidence, camera distance (2.0–3.0m), and side-profile alignment before counting repetitions.
 - **Deterministic State Machines:** Squat and Sit-to-Stand FSMs detect start, descent, bottom inflection, ascending phase, and lockout, distinguishing valid repetitions from incomplete attempts.
-- **Real-Time Voice Coaching:** Low-latency auditory guidance gives immediate spoken feedback (*"Good depth"*, *"Go lower"*, *"Keep chest upright"*).
+- **Real-Time Voice Coaching:** Low-latency auditory guidance gives immediate spoken feedback ("Good depth", "Go lower", "Keep chest upright").
 - **Offline-First Resilience:** All session metadata, rep records, and evidence events are written to local Room SQLite first, then synchronized automatically via local ADB reverse, LAN IP, or remote cloud endpoints.
 - **Clinician Portal:** Interactive web dashboard displaying actual patient session histories, peak flexion curves, rep-by-rep durations, and evidence alerts.
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 KinexMed/
@@ -87,13 +111,13 @@ KinexMed/
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### 1. Prerequisites
 - **Python**: 3.10+
 - **Node.js**: 18+ (with `pnpm` or `npm`)
 - **Android SDK**: API 26+ (Android 8.0+) with JDK 17
-- **Physical Device**: Android phone with CameraX & USB/Wireless Debugging
+- **Physical Device**: Android phone with CameraX and USB/Wireless Debugging
 
 ---
 
@@ -131,7 +155,7 @@ Open the Clinician Portal at: `http://localhost:5173`
 
 ---
 
-### 4. Android App Build & Deployment
+### 4. Android App Build and Deployment
 
 Connect your Android phone with USB or Wireless ADB debugging enabled:
 
@@ -147,7 +171,7 @@ cd android
 
 ---
 
-## 🏃 Running an Exercise Session
+## Running an Exercise Session
 
 1. Open **KinexMed** on your Android device.
 2. Select **Bilateral Squat** or **Sit-to-Stand**.
@@ -160,14 +184,14 @@ cd android
 
 ---
 
-## 🔒 Privacy & Safety
+## Privacy and Safety
 
-- **Zero Video Transmission:** Raw camera images are processed in-memory via CameraX `ImageAnalysis` and immediately freed. No video recordings are saved or transmitted.
+- **Zero Video Transmission:** Raw camera frames are processed in-memory via CameraX `ImageAnalysis` and immediately freed. No video recordings are saved or transmitted.
 - **Encrypted Local Storage:** Patient records remain on-device in Room SQLite until transmitted to authorized endpoints.
 - **Medical Disclaimer:** KinexMed is an assistive clinical measurement tool and is not a substitute for professional medical diagnosis.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
