@@ -19,5 +19,7 @@ data class SessionEntity(
     val maxKneeAngle: Double,
     val evidenceFailureCount: Int,
     val syncStatus: String = "PENDING", // PENDING, SYNCED
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val videoRecordingPath: String? = null,
+    val isRecordingEnabled: Boolean = false
 )

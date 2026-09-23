@@ -1,13 +1,16 @@
 package com.kinexmed.ui
 
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kinexmed.R
 import com.kinexmed.data.entity.RepEntity
 import org.json.JSONArray
+import java.io.File
 import java.util.Locale
 
 class RepInspectionAdapter(
@@ -21,6 +24,8 @@ class RepInspectionAdapter(
         val tvDuration: TextView = itemView.findViewById(R.id.tvRepInspectionDuration)
         val tvFeedback: TextView = itemView.findViewById(R.id.tvRepInspectionFeedback)
         val tvFailureReasons: TextView = itemView.findViewById(R.id.tvRepInspectionFailureReasons)
+        val ivEvidenceThumb: ImageView = itemView.findViewById(R.id.ivRepEvidenceThumbnail)
+        val tvVideoSeek: TextView = itemView.findViewById(R.id.tvRepVideoSeekTag)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RepViewHolder {
@@ -55,9 +60,41 @@ class RepInspectionAdapter(
             }
         }
 
-        holder.tvPeakAngle.text = String.format(Locale.US, "Peak Knee: %.1f°", rep.peakKneeAngle)
+        val targetStr = if (rep.targetAngle > 0.0) String.format(Locale.US, " (Target ≥ %.0f°)", rep.targetAngle) else ""
+        holder.tvPeakAngle.text = String.format(Locale.US, "Peak ROM: %.1f°%s", rep.peakKneeAngle, targetStr)
         holder.tvDuration.text = String.format(Locale.US, "Duration: %.1fs", rep.durationMs / 1000.0)
         holder.tvFeedback.text = rep.feedbackMessage.ifBlank { "Standard trajectory measured." }
+
+        // Bind evidence screenshot thumbnail if present
+        if (!rep.evidenceImagePath.isNullOrBlank()) {
+            val imgFile = File(rep.evidenceImagePath)
+            if (imgFile.exists()) {
+                try {
+                    val bitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
+                    if (bitmap != null) {
+                        holder.ivEvidenceThumb.setImageBitmap(bitmap)
+                        holder.ivEvidenceThumb.visibility = View.VISIBLE
+                    } else {
+                        holder.ivEvidenceThumb.visibility = View.GONE
+                    }
+                } catch (_: Exception) {
+                    holder.ivEvidenceThumb.visibility = View.GONE
+                }
+            } else {
+                holder.ivEvidenceThumb.visibility = View.GONE
+            }
+        } else {
+            holder.ivEvidenceThumb.visibility = View.GONE
+        }
+
+        // Bind video timeline tag if video timestamp exists
+        if (rep.videoTimestampMs != null && rep.videoTimestampMs > 0L) {
+            val sec = (rep.videoTimestampMs / 1000).toInt()
+            holder.tvVideoSeek.text = String.format(Locale.ROOT, "Timeline Offset: %02d:%02d in session video", sec / 60, sec % 60)
+            holder.tvVideoSeek.visibility = View.VISIBLE
+        } else {
+            holder.tvVideoSeek.visibility = View.GONE
+        }
     }
 
     private fun parseReasons(json: String): List<String> {

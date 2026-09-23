@@ -110,7 +110,10 @@ data class RepRecord(
     val startKneeAngle: Double,
     val endKneeAngle: Double,
     val feedbackMessage: String,
-    val failureReasons: List<String> = emptyList()
+    val failureReasons: List<String> = emptyList(),
+    val evidenceImagePath: String? = null,
+    val videoTimestampMs: Long? = null,
+    val targetAngle: Double = 0.0
 )
 
 enum class ExerciseCategory(val displayName: String) {
@@ -182,5 +185,7 @@ data class SessionSummary(
     val maxKneeAngle: Double,
     val evidenceFailureCount: Int,
     val reps: List<RepRecord>,
-    val evidenceEpisodes: List<EvidenceEpisode> = emptyList()
+    val evidenceEpisodes: List<EvidenceEpisode> = emptyList(),
+    val videoRecordingPath: String? = null,
+    val isRecordingEnabled: Boolean = false
 )

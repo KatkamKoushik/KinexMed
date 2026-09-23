@@ -8,6 +8,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.lifecycle.lifecycleScope
 import com.kinexmed.R
 import com.kinexmed.data.db.AppDatabase
@@ -22,6 +23,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnTestConnection: Button
     private lateinit var btnSaveServerUrl: Button
     private lateinit var tvConnectionStatus: TextView
+
+    private lateinit var switchEvidenceCapture: SwitchCompat
+    private lateinit var switchContinuousVideo: SwitchCompat
+    private lateinit var etLocalLlmUrl: EditText
+    private lateinit var btnSaveAssistantSettings: Button
 
     private lateinit var syncManager: SyncManager
 
@@ -44,6 +50,11 @@ class SettingsActivity : AppCompatActivity() {
         btnSaveServerUrl = findViewById(R.id.btnSaveServerUrl)
         tvConnectionStatus = findViewById(R.id.tvConnectionStatus)
 
+        switchEvidenceCapture = findViewById(R.id.switchEvidenceCapture)
+        switchContinuousVideo = findViewById(R.id.switchContinuousVideo)
+        etLocalLlmUrl = findViewById(R.id.etLocalLlmUrl)
+        btnSaveAssistantSettings = findViewById(R.id.btnSaveAssistantSettings)
+
         btnBackSettings.setOnClickListener {
             finish()
         }
@@ -55,12 +66,21 @@ class SettingsActivity : AppCompatActivity() {
         btnTestConnection.setOnClickListener {
             testServerConnection()
         }
+
+        btnSaveAssistantSettings.setOnClickListener {
+            saveAssistantSettings()
+        }
     }
 
     private fun loadPreferences() {
-        val prefs = getSharedPreferences(SyncManager.PREFS_NAME, Context.MODE_PRIVATE)
-        val savedUrl = prefs.getString(SyncManager.KEY_SERVER_URL, SyncManager.DEFAULT_SERVER_URL)
+        val serverPrefs = getSharedPreferences(SyncManager.PREFS_NAME, Context.MODE_PRIVATE)
+        val savedUrl = serverPrefs.getString(SyncManager.KEY_SERVER_URL, SyncManager.DEFAULT_SERVER_URL)
         etServerUrl.setText(savedUrl)
+
+        val settingsPrefs = getSharedPreferences("kinexmed_settings", Context.MODE_PRIVATE)
+        switchEvidenceCapture.isChecked = settingsPrefs.getBoolean("pref_evidence_capture", true)
+        switchContinuousVideo.isChecked = settingsPrefs.getBoolean("pref_opt_in_video_recording", false)
+        etLocalLlmUrl.setText(settingsPrefs.getString("pref_local_llm_url", ""))
     }
 
     private fun saveServerUrl() {
@@ -76,6 +96,21 @@ class SettingsActivity : AppCompatActivity() {
         Toast.makeText(this, "Server URL saved!", Toast.LENGTH_SHORT).show()
         tvConnectionStatus.text = "Saved: $url"
         tvConnectionStatus.setTextColor(0xFF06B6D4.toInt())
+    }
+
+    private fun saveAssistantSettings() {
+        val prefs = getSharedPreferences("kinexmed_settings", Context.MODE_PRIVATE)
+        val capture = switchEvidenceCapture.isChecked
+        val video = switchContinuousVideo.isChecked
+        val llmUrl = etLocalLlmUrl.text.toString().trim()
+
+        prefs.edit()
+            .putBoolean("pref_evidence_capture", capture)
+            .putBoolean("pref_opt_in_video_recording", video)
+            .putString("pref_local_llm_url", llmUrl)
+            .apply()
+
+        Toast.makeText(this, "Assistant & Evidence settings saved!", Toast.LENGTH_SHORT).show()
     }
 
     private fun testServerConnection() {

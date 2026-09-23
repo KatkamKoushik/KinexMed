@@ -88,5 +88,25 @@
             android:textColor="#F59E0B"
             android:textSize="11sp"
             android:visibility="gone" />
+
+        <!-- Evidence Screenshot Thumbnail (if captured on rejected rep) -->
+        <ImageView
+            android:id="@+id/ivRepEvidenceThumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:background="#0A0E17"
+            android:visibility="gone"
+            android:contentDescription="Rep Evidence Frame" />
+
+        <TextView
+            android:id="@+id/tvRepVideoSeekTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="#06B6D4"
+            android:textSize="11sp"
+            android:visibility="gone" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

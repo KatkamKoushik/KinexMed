@@ -31,5 +31,9 @@ data class RepEntity(
     val startKneeAngle: Double,
     val endKneeAngle: Double,
     val feedbackMessage: String,
-    val failureReasonsJson: String = "[]"
+    val failureReasonsJson: String = "[]",
+    val evidenceImagePath: String? = null,
+    val videoTimestampMs: Long? = null,
+    val targetAngle: Double = 0.0,
+    val exerciseName: String = ""
 )

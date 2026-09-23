@@ -31,8 +31,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvTotalValidRepsKpi: TextView
     private lateinit var tvSyncStatusSummary: TextView
     private lateinit var llExercisesContainer: LinearLayout
+    private lateinit var btnChat: ImageButton
     private lateinit var btnHistory: ImageButton
     private lateinit var btnSettings: ImageButton
+    private lateinit var cardRehabAssistantBanner: androidx.cardview.widget.CardView
 
     private lateinit var chipAll: Button
     private lateinit var chipLowerBody: Button
@@ -57,8 +59,18 @@ class MainActivity : AppCompatActivity() {
         tvTotalValidRepsKpi = findViewById(R.id.tvTotalValidRepsKpi)
         tvSyncStatusSummary = findViewById(R.id.tvSyncStatusSummary)
         llExercisesContainer = findViewById(R.id.llExercisesContainer)
+        btnChat = findViewById(R.id.btnChat)
         btnHistory = findViewById(R.id.btnHistory)
         btnSettings = findViewById(R.id.btnSettings)
+        cardRehabAssistantBanner = findViewById(R.id.cardRehabAssistantBanner)
+
+        btnChat.setOnClickListener {
+            startActivity(Intent(this, ChatActivity::class.java))
+        }
+
+        cardRehabAssistantBanner.setOnClickListener {
+            startActivity(Intent(this, ChatActivity::class.java))
+        }
 
         chipAll = findViewById(R.id.chipAll)
         chipLowerBody = findViewById(R.id.chipLowerBody)

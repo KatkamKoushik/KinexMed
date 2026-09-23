@@ -1,6 +1,7 @@
 package com.kinexmed.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -129,6 +130,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
     private var minAngleSeenOverall = 180.0
     private var maxAngleSeenOverall = 0.0
     private var lastKnownAngle = 180.0
+    private var latestCameraBitmap: Bitmap? = null
 
     private var timerJob: Job? = null
 
@@ -582,6 +584,10 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             0.0
         }
 
+        val prefs = getSharedPreferences("kinexmed_settings", Context.MODE_PRIVATE)
+        val isRecordingOptedIn = prefs.getBoolean("pref_opt_in_video_recording", false)
+        val videoPath = if (isRecordingOptedIn) "${filesDir.absolutePath}/session_videos/${currentSessionId}.mp4" else null
+
         val summary = SessionSummary(
             sessionId = currentSessionId,
             exerciseName = exerciseDef.type.id,
@@ -595,7 +601,9 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             maxKneeAngle = maxAngleSeenOverall,
             evidenceFailureCount = warningEpisodeCount,
             reps = sessionReps.toList(),
-            evidenceEpisodes = evidenceEpisodes.toList()
+            evidenceEpisodes = evidenceEpisodes.toList(),
+            videoRecordingPath = videoPath,
+            isRecordingEnabled = isRecordingOptedIn
         )
 
         appSupervisorScope.launch {
@@ -704,6 +712,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         )
 
         imageProxy.close()
+        latestCameraBitmap = rotatedBitmap
         poseLandmarkerHelper.detectLiveStream(rotatedBitmap)
     }
 
@@ -842,7 +851,35 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             tvGuidanceMessage.text = fsmResult.feedbackMessage
 
             // Handle Completed Repetition
-            fsmResult.completedRep?.let { rep ->
+            fsmResult.completedRep?.let { rawRep ->
+                val prefs = getSharedPreferences("kinexmed_settings", Context.MODE_PRIVATE)
+                val isEvidenceCaptureEnabled = prefs.getBoolean("pref_evidence_capture", true)
+                var capturedPath: String? = null
+
+                if (!rawRep.isValid && isEvidenceCaptureEnabled && latestCameraBitmap != null) {
+                    try {
+                        val evidenceDir = java.io.File(filesDir, "evidence_frames")
+                        if (!evidenceDir.exists()) evidenceDir.mkdirs()
+                        val frameFile = java.io.File(evidenceDir, "${currentSessionId}_rep_${rawRep.repNumber}.jpg")
+                        val scaled = Bitmap.createScaledBitmap(latestCameraBitmap!!, 480, 640, true)
+                        val fos = java.io.FileOutputStream(frameFile)
+                        scaled.compress(Bitmap.CompressFormat.JPEG, 80, fos)
+                        fos.flush()
+                        fos.close()
+                        capturedPath = frameFile.absolutePath
+                    } catch (_: Exception) {}
+                }
+
+                val targetAngleDigits = exerciseDef.targetMetricTarget.filter { it.isDigit() || it == '.' }
+                val targetVal = targetAngleDigits.toDoubleOrNull() ?: 90.0
+                val videoOffset = if (sessionStartTimeMs > 0L) (rawRep.startTimestampMs - sessionStartTimeMs).coerceAtLeast(0L) else 0L
+
+                val rep = rawRep.copy(
+                    evidenceImagePath = capturedPath,
+                    targetAngle = targetVal,
+                    videoTimestampMs = videoOffset
+                )
+
                 sessionReps.add(rep)
                 voiceFeedback.speakFeedback(rep.feedbackMessage, isHighPriority = true)
                 val validCount = sessionReps.count { it.isValid }
