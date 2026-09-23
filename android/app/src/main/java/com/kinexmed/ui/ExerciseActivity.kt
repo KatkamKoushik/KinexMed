@@ -101,7 +101,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
 
     // Pipeline Domain Components
     private val evidenceEngine = EvidenceEngine()
-    private val angleFilter = OneEuroFilter(minCutoff = 1.2, beta = 0.008)
+    private val angleFilter = OneEuroFilter(minCutoff = 1.2, beta = 0.05)
     private lateinit var exerciseDef: ExerciseDefinition
     private lateinit var exerciseFsm: ExerciseStateMachine
 
@@ -116,6 +116,11 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
     private var pausedAtMs = 0L
     private var totalPausedDurationMs = 0L
     private var lastFinishClickTimeMs = 0L
+
+    // Hands-Free Auto-Countdown State
+    private var idleEvidenceStartTimeMs = 0L
+    private var countdownJob: Job? = null
+    private val appSupervisorScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     // In-session Kinematic Data
     private val sessionReps = mutableListOf<RepRecord>()
@@ -350,10 +355,15 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
     }
 
     /**
-     * Explicit user action: starts a brand new exercise session.
+     * Explicit user action or hands-free auto-trigger: starts a brand new exercise session.
      * Generates a new unique session ID, resets the timer, FSM, and in-memory reps.
      */
     private fun startNewSession() {
+        countdownJob?.cancel()
+        countdownJob = null
+        idleEvidenceStartTimeMs = 0L
+
+        GeometryEngine.resetSidePreferences()
         currentSessionId = UUID.randomUUID().toString()
         sessionStartTimeMs = System.currentTimeMillis()
         pausedAtMs = 0L
@@ -375,6 +385,28 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         val prompt = "${exerciseDef.displayName} session started. ${exerciseDef.instructions.firstOrNull() ?: "Assume starting posture."}"
         voiceFeedback.speakFeedback(prompt, isHighPriority = true)
         android.util.Log.i("KinexMedSession", "Explicit session start: ID=$currentSessionId, Exercise=${exerciseDef.type.id}")
+    }
+
+    private fun triggerHandsFreeCountdown() {
+        if (sessionLifecycleState != SessionLifecycleState.IDLE) return
+        sessionLifecycleState = SessionLifecycleState.PREPARING
+        updateUiForLifecycleState()
+
+        countdownJob?.cancel()
+        countdownJob = lifecycleScope.launch {
+            voiceFeedback.speakFeedback("Framing verified. Starting in 5 seconds.", isHighPriority = true)
+            for (sec in 5 downTo 1) {
+                if (sessionLifecycleState != SessionLifecycleState.PREPARING) return@launch
+                tvEvidenceMessage.text = "Hands-free countdown: $sec..."
+                tvGuidanceMessage.text = "Starting in $sec seconds"
+                voiceFeedback.speakFeedback("$sec", isHighPriority = true)
+                delay(1000)
+            }
+            if (sessionLifecycleState == SessionLifecycleState.PREPARING) {
+                voiceFeedback.speakFeedback("Begin!", isHighPriority = true)
+                startNewSession()
+            }
+        }
     }
 
     /**
@@ -566,33 +598,37 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             evidenceEpisodes = evidenceEpisodes.toList()
         )
 
-        lifecycleScope.launch {
+        appSupervisorScope.launch {
             val (_, syncedCount) = withContext(Dispatchers.IO) {
                 val entity = sessionRepository.recordCompletedSession(summary)
                 val synced = syncManager.syncPendingSessions()
                 Pair(entity, synced)
             }
 
-            sessionLifecycleState = SessionLifecycleState.COMPLETED
-            updateUiForLifecycleState()
+            withContext(Dispatchers.Main) {
+                if (!isFinishing && !isDestroyed) {
+                    sessionLifecycleState = SessionLifecycleState.COMPLETED
+                    updateUiForLifecycleState()
 
-            val syncStatusText = if (syncedCount > 0) {
-                "Synchronized to Clinician Dashboard"
-            } else {
-                "Saved locally in Room SQLite (sync pending)"
+                    val syncStatusText = if (syncedCount > 0) {
+                        "Synchronized to Clinician Dashboard"
+                    } else {
+                        "Saved locally in Room SQLite (sync pending)"
+                    }
+
+                    // Populate completion overlay statistics
+                    tvCompletionValidReps.text = "$validReps"
+                    tvCompletionTotalReps.text = "Total Reps: $totalReps"
+                    val minutes = durationSeconds.toInt() / 60
+                    val seconds = durationSeconds.toInt() % 60
+                    tvCompletionDuration.text = String.format("%02d:%02d", minutes, seconds)
+                    tvCompletionAvgRom.text = "${avgPeak.toInt()}°"
+                    tvCompletionSyncStatus.text = syncStatusText
+
+                    voiceFeedback.speakFeedback("Session complete. $validReps valid reps recorded.", isHighPriority = true)
+                }
+                android.util.Log.i("KinexMedSession", "Session finished & saved: ID=$currentSessionId, valid=$validReps/$totalReps")
             }
-
-            // Populate completion overlay statistics
-            tvCompletionValidReps.text = "$validReps"
-            tvCompletionTotalReps.text = "Total Reps: $totalReps"
-            val minutes = durationSeconds.toInt() / 60
-            val seconds = durationSeconds.toInt() % 60
-            tvCompletionDuration.text = String.format("%02d:%02d", minutes, seconds)
-            tvCompletionAvgRom.text = "${avgPeak.toInt()}°"
-            tvCompletionSyncStatus.text = syncStatusText
-
-            voiceFeedback.speakFeedback("Session complete. $validReps valid reps recorded.", isHighPriority = true)
-            android.util.Log.i("KinexMedSession", "Session finished & saved: ID=$currentSessionId, valid=$validReps/$totalReps, sync=$syncStatusText")
         }
     }
 
@@ -696,16 +732,37 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
 
         // 2. Gate by SessionLifecycleState
         if (sessionLifecycleState != SessionLifecycleState.ACTIVE) {
-            // When in IDLE, show visual framing preview so user can position themselves
-            if (sessionLifecycleState == SessionLifecycleState.IDLE) {
-                val evidenceStatus = evidenceEngine.evaluateEvidence(landmarks, timestamp, exerciseDef.type)
-                runOnUiThread {
-                    overlayView.updatePose(landmarks, evidenceStatus, null)
-                    tvEvidenceMessage.text = if (evidenceStatus is EvidenceStatus.Insufficient) {
-                        evidenceStatus.userMessage
-                    } else {
-                        "Good visual framing. Tap START SESSION to begin."
+            val evidenceStatus = evidenceEngine.evaluateEvidence(landmarks, timestamp, exerciseDef.type)
+            runOnUiThread {
+                overlayView.updatePose(landmarks, evidenceStatus, null)
+
+                when (sessionLifecycleState) {
+                    SessionLifecycleState.IDLE -> {
+                        if (evidenceStatus is EvidenceStatus.Sufficient) {
+                            if (idleEvidenceStartTimeMs == 0L) {
+                                idleEvidenceStartTimeMs = timestamp
+                            } else if (timestamp - idleEvidenceStartTimeMs >= 1500L && countdownJob == null) {
+                                triggerHandsFreeCountdown()
+                            }
+                            tvEvidenceMessage.text = "Body in frame! Hold still for hands-free start or tap START SESSION."
+                        } else {
+                            idleEvidenceStartTimeMs = 0L
+                            tvEvidenceMessage.text = (evidenceStatus as EvidenceStatus.Insufficient).userMessage
+                        }
                     }
+                    SessionLifecycleState.PREPARING -> {
+                        if (evidenceStatus is EvidenceStatus.Insufficient) {
+                            // Evidence lost during countdown: reset
+                            countdownJob?.cancel()
+                            countdownJob = null
+                            sessionLifecycleState = SessionLifecycleState.IDLE
+                            idleEvidenceStartTimeMs = 0L
+                            updateUiForLifecycleState()
+                            tvEvidenceMessage.text = evidenceStatus.userMessage
+                            voiceFeedback.speakGuidance(evidenceStatus.userMessage)
+                        }
+                    }
+                    else -> {}
                 }
             }
             return

@@ -43,22 +43,20 @@ Provide a concise, encouraging, and strictly objective 2-3 sentence summary of t
 def generate_deterministic_fallback_summary(session: SessionModel) -> str:
     """
     Deterministic rule-based summary when no local LLM server is active.
-    100% grounded in recorded kinematic data.
+    100% grounded in recorded kinematic data across all 15 exercises.
     """
+    friendly_name = session.exercise_name.replace("_", " ").title()
     pct = round((session.valid_reps / session.total_reps) * 100) if session.total_reps > 0 else 0
-    depth_evaluation = (
-        "reached the target depth consistently"
-        if session.avg_peak_knee_angle <= 95
-        else f"reached an average flexion depth of {round(session.avg_peak_knee_angle)}°"
-    )
+    metric_evaluation = f"with an average peak metric of {round(session.avg_peak_knee_angle)}°"
 
     evidence_note = ""
     if session.evidence_failure_count > 0:
         evidence_note = f" Note: {session.evidence_failure_count} frame positioning warning(s) were flagged by the camera tracker."
 
+    attempts_word = "squat attempts" if session.exercise_name.lower() == "squat" else f"{friendly_name} repetitions"
     return (
-        f"You completed {session.total_reps} squat attempts with {session.valid_reps} fully valid repetitions ({pct}% adherence). "
-        f"Your movement {depth_evaluation} over an active duration of {round(session.duration_seconds)} seconds.{evidence_note}"
+        f"You completed {session.total_reps} {attempts_word} with {session.valid_reps} valid repetitions ({pct}% adherence) "
+        f"{metric_evaluation} over an active duration of {round(session.duration_seconds)} seconds.{evidence_note}"
     )
 
 async def summarize_session(session: SessionModel) -> dict:

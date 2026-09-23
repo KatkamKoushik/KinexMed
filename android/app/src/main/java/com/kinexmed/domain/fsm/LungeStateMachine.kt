@@ -27,7 +27,7 @@ data class LungeRuleConfig(
 class LungeStateMachine(
     val config: LungeRuleConfig = LungeRuleConfig()
 ) : ExerciseStateMachine {
-    override val exerciseType: ExerciseType = ExerciseType.LUNGE
+    override val exerciseType: ExerciseType = ExerciseType.FORWARD_LUNGE
     override val primaryMetricName: String = "Lead Knee Angle"
     override val primaryMetricUnit: String = "°"
     override val targetThresholdDesc: String = "Target: ≤${config.minValidDepthAngle.toInt()}°"

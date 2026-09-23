@@ -78,7 +78,7 @@ export const EvidenceQualityView: React.FC<EvidenceQualityViewProps> = ({ sessio
             <CheckCircle2 size={16} color="#10B981" />
             <div>
               <strong>No Cloud Video Streams:</strong>
-              <p>Camera frames are processed entirely in phone memory (GPU/NPU) and discarded immediately after landmark vector extraction.</p>
+              <p>Camera frames are processed entirely in phone memory (on-device CPU) and discarded immediately after landmark vector extraction.</p>
             </div>
           </div>
 

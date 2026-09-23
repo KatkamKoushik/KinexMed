@@ -14,6 +14,26 @@ object GeometryEngine {
 
     private const val RAD_TO_DEG = 180.0 / Math.PI
     private const val EPSILON = 1e-6
+    private const val SIDE_HYSTERESIS_THRESHOLD = 0.08f
+
+    @Volatile
+    private var lastPreferredKneeSide: String? = null
+    @Volatile
+    private var lastPreferredHipSide: String? = null
+    @Volatile
+    private var lastPreferredElbowSide: String? = null
+    @Volatile
+    private var lastPreferredShoulderSide: String? = null
+
+    /**
+     * Resets side-preference hysteresis. Call at session start.
+     */
+    fun resetSidePreferences() {
+        lastPreferredKneeSide = null
+        lastPreferredHipSide = null
+        lastPreferredElbowSide = null
+        lastPreferredShoulderSide = null
+    }
 
     /**
      * Calculates the 2D interior angle in degrees at vertex [b], formed by ray b->a and ray b->c.
@@ -101,6 +121,10 @@ object GeometryEngine {
         )
     }
 
+    // ==========================================
+    // LOWER BODY JOINTS (KNEE & HIP)
+    // ==========================================
+
     /**
      * Extracts Left Knee Angle (Hip 23 -> Knee 25 -> Ankle 27).
      */
@@ -123,20 +147,30 @@ object GeometryEngine {
 
     /**
      * Returns the knee angle for the side with higher tracking confidence.
-     * When user is facing side-on (sagittal view), one leg will have significantly higher visibility.
+     * Applies hysteresis (+-0.08 margin) to prevent frame-to-frame switching jitter.
      */
     fun getPrimaryKneeAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
         val left = calculateLeftKneeAngle(landmarks, timestampMs)
         val right = calculateRightKneeAngle(landmarks, timestampMs)
 
-        return when {
+        val selected = when {
             left == null && right == null -> null
             left != null && right == null -> left
             left == null && right != null -> right
             else -> {
-                if (left!!.confidence >= right!!.confidence) left else right
+                val lConf = left!!.confidence
+                val rConf = right!!.confidence
+                when (lastPreferredKneeSide) {
+                    "left" -> if (rConf > lConf + SIDE_HYSTERESIS_THRESHOLD) right else left
+                    "right" -> if (lConf > rConf + SIDE_HYSTERESIS_THRESHOLD) left else right
+                    else -> if (lConf >= rConf) left else right
+                }
             }
         }
+        if (selected != null) {
+            lastPreferredKneeSide = if (selected.jointName.startsWith("left")) "left" else "right"
+        }
+        return selected
     }
 
     /**
@@ -161,18 +195,31 @@ object GeometryEngine {
         return calculateAngle2D(shoulder, hip, knee, timestampMs, "right_hip")
     }
 
+    /**
+     * Returns the primary hip angle with hysteresis stabilization.
+     */
     fun getPrimaryHipAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
         val left = calculateLeftHipAngle(landmarks, timestampMs)
         val right = calculateRightHipAngle(landmarks, timestampMs)
 
-        return when {
+        val selected = when {
             left == null && right == null -> null
             left != null && right == null -> left
             left == null && right != null -> right
             else -> {
-                if (left!!.confidence >= right!!.confidence) left else right
+                val lConf = left!!.confidence
+                val rConf = right!!.confidence
+                when (lastPreferredHipSide) {
+                    "left" -> if (rConf > lConf + SIDE_HYSTERESIS_THRESHOLD) right else left
+                    "right" -> if (lConf > rConf + SIDE_HYSTERESIS_THRESHOLD) left else right
+                    else -> if (lConf >= rConf) left else right
+                }
             }
         }
+        if (selected != null) {
+            lastPreferredHipSide = if (selected.jointName.startsWith("left")) "left" else "right"
+        }
+        return selected
     }
 
     /**
@@ -227,5 +274,181 @@ object GeometryEngine {
                 if (left!!.angleDegrees <= right!!.angleDegrees) left else right
             }
         }
+    }
+
+    // ==========================================
+    // UPPER BODY JOINTS (ELBOW & SHOULDER)
+    // ==========================================
+
+    /**
+     * Extracts Left Elbow Angle (Shoulder 11 -> Elbow 13 -> Wrist 15).
+     * ~180° indicates fully extended arm.
+     * ~45°-60° indicates peak bicep flexion.
+     */
+    fun calculateLeftElbowAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val shoulder = landmarks[PoseLandmarks.LEFT_SHOULDER] ?: return null
+        val elbow = landmarks[PoseLandmarks.LEFT_ELBOW] ?: return null
+        val wrist = landmarks[PoseLandmarks.LEFT_WRIST] ?: return null
+        return calculateAngle2D(shoulder, elbow, wrist, timestampMs, "left_elbow")
+    }
+
+    /**
+     * Extracts Right Elbow Angle (Shoulder 12 -> Elbow 14 -> Wrist 16).
+     */
+    fun calculateRightElbowAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val shoulder = landmarks[PoseLandmarks.RIGHT_SHOULDER] ?: return null
+        val elbow = landmarks[PoseLandmarks.RIGHT_ELBOW] ?: return null
+        val wrist = landmarks[PoseLandmarks.RIGHT_WRIST] ?: return null
+        return calculateAngle2D(shoulder, elbow, wrist, timestampMs, "right_elbow")
+    }
+
+    /**
+     * Returns primary elbow angle with side-preference hysteresis.
+     */
+    fun getPrimaryElbowAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val left = calculateLeftElbowAngle(landmarks, timestampMs)
+        val right = calculateRightElbowAngle(landmarks, timestampMs)
+
+        val selected = when {
+            left == null && right == null -> null
+            left != null && right == null -> left
+            left == null && right != null -> right
+            else -> {
+                val lConf = left!!.confidence
+                val rConf = right!!.confidence
+                when (lastPreferredElbowSide) {
+                    "left" -> if (rConf > lConf + SIDE_HYSTERESIS_THRESHOLD) right else left
+                    "right" -> if (lConf > rConf + SIDE_HYSTERESIS_THRESHOLD) left else right
+                    else -> if (lConf >= rConf) left else right
+                }
+            }
+        }
+        if (selected != null) {
+            lastPreferredElbowSide = if (selected.jointName.startsWith("left")) "left" else "right"
+        }
+        return selected
+    }
+
+    /**
+     * Left Shoulder Flexion Angle (Hip 23 -> Shoulder 11 -> Elbow 13).
+     * Arm at side: ~10°-20°.
+     * Arm forward horizontal: ~90°.
+     * Arm overhead: ~160°-180°.
+     */
+    fun calculateLeftShoulderAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val hip = landmarks[PoseLandmarks.LEFT_HIP] ?: return null
+        val shoulder = landmarks[PoseLandmarks.LEFT_SHOULDER] ?: return null
+        val elbow = landmarks[PoseLandmarks.LEFT_ELBOW] ?: return null
+        return calculateAngle2D(hip, shoulder, elbow, timestampMs, "left_shoulder")
+    }
+
+    /**
+     * Right Shoulder Flexion Angle (Hip 24 -> Shoulder 12 -> Elbow 14).
+     */
+    fun calculateRightShoulderAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val hip = landmarks[PoseLandmarks.RIGHT_HIP] ?: return null
+        val shoulder = landmarks[PoseLandmarks.RIGHT_SHOULDER] ?: return null
+        val elbow = landmarks[PoseLandmarks.RIGHT_ELBOW] ?: return null
+        return calculateAngle2D(hip, shoulder, elbow, timestampMs, "right_shoulder")
+    }
+
+    /**
+     * Returns primary shoulder angle with hysteresis.
+     */
+    fun getPrimaryShoulderAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val left = calculateLeftShoulderAngle(landmarks, timestampMs)
+        val right = calculateRightShoulderAngle(landmarks, timestampMs)
+
+        val selected = when {
+            left == null && right == null -> null
+            left != null && right == null -> left
+            left == null && right != null -> right
+            else -> {
+                val lConf = left!!.confidence
+                val rConf = right!!.confidence
+                when (lastPreferredShoulderSide) {
+                    "left" -> if (rConf > lConf + SIDE_HYSTERESIS_THRESHOLD) right else left
+                    "right" -> if (lConf > rConf + SIDE_HYSTERESIS_THRESHOLD) left else right
+                    else -> if (lConf >= rConf) left else right
+                }
+            }
+        }
+        if (selected != null) {
+            lastPreferredShoulderSide = if (selected.jointName.startsWith("left")) "left" else "right"
+        }
+        return selected
+    }
+
+    // ==========================================
+    // FUNCTIONAL, MOBILITY & BALANCE METRICS
+    // ==========================================
+
+    /**
+     * Seated Knee Extension:
+     * Patient is seated (Hip flexed ~90°).
+     * Knee angle starts flexed at ~90°.
+     * Leg kicks out straight to ~160°-180°.
+     */
+    fun getSeatedKneeExtensionAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        return getPrimaryKneeAngle(landmarks, timestampMs)
+    }
+
+    /**
+     * Standing Hip Abduction:
+     * Measures angle of thigh moving laterally away from midline.
+     * In standing, shoulder-hip-knee is ~180°. During abduction, angle shifts ~30°-45°.
+     */
+    fun getStandingHipAbductionAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        return getPrimaryHipAngle(landmarks, timestampMs)
+    }
+
+    /**
+     * Standing Hip Extension:
+     * Measures leg extending backward past midline.
+     */
+    fun getStandingHipExtensionAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        return getPrimaryHipAngle(landmarks, timestampMs)
+    }
+
+    /**
+     * Marching in Place (High Knees):
+     * Tracks the hip of the leg being lifted (lower angle = higher knee raise).
+     */
+    fun getMarchingHipFlexionAngle(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val left = calculateLeftHipAngle(landmarks, timestampMs)
+        val right = calculateRightHipAngle(landmarks, timestampMs)
+
+        return when {
+            left == null && right == null -> null
+            left != null && right == null -> left
+            left == null && right != null -> right
+            else -> {
+                // Return whichever hip is more flexed (lower interior angle)
+                if (left!!.angleDegrees <= right!!.angleDegrees) left else right
+            }
+        }
+    }
+
+    /**
+     * Supported Single-Leg Balance:
+     * Computes the vertical distance between ankles normalized by approximate leg length.
+     * > 0.06 indicates one leg is cleanly elevated off the ground in single-leg stance.
+     */
+    fun getSingleLegBalanceElevation(landmarks: Map<Int, Landmark>, timestampMs: Long): JointAngle? {
+        val leftAnkle = landmarks[PoseLandmarks.LEFT_ANKLE] ?: return null
+        val rightAnkle = landmarks[PoseLandmarks.RIGHT_ANKLE] ?: return null
+        val leftHip = landmarks[PoseLandmarks.LEFT_HIP] ?: return null
+
+        val legLength = kotlin.math.abs(leftAnkle.y - leftHip.y).toDouble().coerceAtLeast(0.1)
+        val ankleDiffY = kotlin.math.abs(leftAnkle.y - rightAnkle.y).toDouble()
+        val elevationRatio = (ankleDiffY / legLength) * 100.0 // 0 to 100% elevation
+
+        val confidence = minOf(leftAnkle.visibility, minOf(rightAnkle.visibility, leftHip.visibility))
+        return JointAngle(
+            jointName = "single_leg_elevation",
+            angleDegrees = elevationRatio,
+            confidence = confidence,
+            timestampMs = timestampMs
+        )
     }
 }

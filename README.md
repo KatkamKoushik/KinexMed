@@ -1,4 +1,4 @@
-# KinexMed — Clinical Movement Intelligence and Rehabilitation Platform
+# KinexMed — Clinical Movement Intelligence and Multi-Exercise Rehabilitation Platform
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Android](https://img.shields.io/badge/Android-API%2026%2B-3DDC84.svg?style=flat&logo=android)](https://developer.android.com)
@@ -8,7 +8,7 @@
 
 > Prototype developed for **iQOO Hackathon 2026 — The Hyderabad City Battle**
 
-**KinexMed** is an edge-native, real-time physical rehabilitation observation platform. It enables patients to perform prescribed physical therapy exercises (such as Bilateral Squats and Sit-to-Stand) under automated clinical observation using a standard Android smartphone, while streaming validated kinematic metrics to a clinician portal.
+**KinexMed** is an edge-native, real-time physical rehabilitation observation platform. It enables patients to perform prescribed physical therapy exercises under automated on-device observation using a standard Android smartphone, while streaming validated kinematic metrics to a clinician portal.
 
 KinexMed operates on a strict **zero-mock-data integrity** principle: all telemetry, range-of-motion measurements, and repetition timestamps originate solely from live on-device anatomical landmark geometry.
 
@@ -36,44 +36,75 @@ This prototype was built by:
 
 ---
 
+## Multi-Exercise Library (15 Modules Across 4 Categories)
+
+KinexMed features a modular, extensible clinical exercise library organized into four therapeutic categories. Each exercise is assigned an explicit validation badge indicating its testing status:
+
+### 1. Lower Body (8 Exercises)
+- **Sit-to-Stand (Demonstrated):** Knee extension and hip angle tracking (target: >= 148 deg). Physically demonstrated on physical hardware with zero perceived latency and instant inflection detection.
+- **Bilateral Squat (Implemented Module):** Sagittal knee angle tracking (target: <= 100 deg, optimal 90 deg) with side-preference hysteresis (+-0.08 confidence margin) and 138 deg upright lockout.
+- **Forward Lunge (Implemented Module):** Lead knee flexion tracking (target: <= 100 deg).
+- **Reverse Lunge (Implemented Module):** Lead knee flexion tracking (target: <= 100 deg).
+- **Calf Raise (Implemented Module):** Ankle plantarflexion tracking (target: >= 115 deg).
+- **Seated Knee Extension (Implemented Module):** Seated lower-leg extension tracking (target: >= 145 deg).
+- **Standing Hip Abduction (Implemented Module):** Lateral leg raise angle tracking (target: <= 150 deg).
+- **Standing Hip Extension (Implemented Module):** Posterior hip extension tracking (target: <= 152 deg).
+
+### 2. Upper Body (4 Exercises)
+- **Shoulder Flexion (Implemented Module):** Forward arm elevation angle tracking (target: >= 90 deg).
+- **Shoulder Abduction (Implemented Module):** Lateral arm elevation angle tracking (target: >= 90 deg).
+- **Elbow Flexion / Bicep Curl (Implemented Module):** Interior elbow flexion tracking (target: <= 70 deg).
+- **Elbow Extension / Tricep (Implemented Module):** Posterior arm extension tracking (target: >= 145 deg).
+
+### 3. Functional & Mobility (2 Exercises)
+- **Marching in Place (Implemented Module):** Alternating hip flexion angle tracking (target: <= 110 deg).
+- **Heel-to-Toe Rocking (Implemented Module):** Fluid ankle motion and stability cycle tracking (target: >= 112 deg).
+
+### 4. Balance & Stability (1 Exercise)
+- **Supported Single-Leg Balance (Implemented Module):** Single-leg elevation ratio and continuous stability hold duration tracking (target: >= 10.0s).
+
+---
+
 ## System Architecture
 
 ```mermaid
 flowchart LR
     subgraph Android["Android Edge Device (On-Device)"]
-        Cam["CameraX Live Stream"] --> MP["MediaPipe Pose Landmarker"]
-        MP --> Filter["One-Euro Filter (Jitter Removal)"]
-        Filter --> Geom["3D Geometry & Angle Engine"]
-        MP --> Evidence["Evidence & Visibility Engine"]
-        Geom & Evidence --> FSM["Deterministic Exercise FSM"]
-        FSM --> Audio["TTS Spoken Feedback"]
-        FSM --> Room["Room SQLite (Offline Persistence)"]
-        Room --> Sync["SyncManager (Multi-Endpoint)"]
+        Cam["CameraX Live Stream"] --> MP["MediaPipe Pose Landmarker (CPU Delegate)"]
+        MP --> Filter["One-Euro Filter (beta=0.05)"]
+        Filter --> Geom["Biomechanical Geometry & Side Hysteresis"]
+        MP --> Evidence["Evidence & Framing Gate"]
+        Geom & Evidence --> FSM["Deterministic Multi-Exercise FSMs"]
+        FSM --> Audio["TTS Spoken Coaching & Hands-Free Countdown"]
+        FSM --> Room["Room SQLite (Local-First Persistence)"]
+        Room --> Sync["SyncManager (Dynamic Multi-Endpoint)"]
     end
 
     subgraph Backend["Backend (FastAPI)"]
         Sync -->|HTTP JSON POST| API["FastAPI REST Services"]
-        API --> DB[(SQLAlchemy / SQLite / PostgreSQL)]
+        API --> DB[(SQLAlchemy / SQLite)]
+        API --> LLM["Grounded Dynamic Summaries"]
     end
 
     subgraph Web["Clinician Web Portal (React / Vite)"]
         DB --> Dashboard["Clinician Telemetry Dashboard"]
-        Dashboard --> Charts["ROM & Kinematic Visualizer"]
+        Dashboard --> Charts["Dynamic ROM & Kinematic Visualizer"]
         Dashboard --> Reps["Repetition Quality Inspector"]
     end
 ```
 
 ---
 
-## Key Features
+## Key Technical Features
 
-- **100% On-Device Edge Telemetry:** Raw camera frames are analyzed in real time on the device CPU and discarded immediately. No video stream or personal image ever leaves the smartphone.
-- **Biomechanical Angle Extraction:** Calculates true 3D Euclidean joint angles (hip-knee-ankle flexion/extension vectors) with One-Euro sub-millisecond temporal smoothing.
-- **Clinical Evidence Engine:** Assesses bounding box containment, joint confidence, camera distance (2.0–3.0m), and side-profile alignment before counting repetitions.
-- **Deterministic State Machines:** Squat and Sit-to-Stand FSMs detect start, descent, bottom inflection, ascending phase, and lockout, distinguishing valid repetitions from incomplete attempts.
-- **Real-Time Voice Coaching:** Low-latency auditory guidance gives immediate spoken feedback ("Good depth", "Go lower", "Keep chest upright").
-- **Offline-First Resilience:** All session metadata, rep records, and evidence events are written to local Room SQLite first, then synchronized automatically via local ADB reverse, LAN IP, or remote cloud endpoints.
-- **Clinician Portal:** Interactive web dashboard displaying actual patient session histories, peak flexion curves, rep-by-rep durations, and evidence alerts.
+- **100% On-Device Processing:** Raw camera video frames are processed entirely in memory on the device CPU and discarded immediately. No video stream or personal photo ever leaves the phone.
+- **Biomechanical Angle Extraction:** Calculates true Euclidean joint angles across upper and lower extremities with side-preference hysteresis (+-0.08 margin) to eliminate frame-to-frame switching jitter.
+- **Sub-Millisecond Temporal Smoothing:** One-Euro filter tuned with beta = 0.05 for immediate velocity tracking without lagging rapid movement initiation while keeping static pose steady.
+- **Hands-Free Start:** 1.5 seconds of continuous stable framing triggers an audible 5-second countdown ("5, 4, 3, 2, 1, Begin!") with auto-session start, allowing patients to position themselves 2.5m away without touching the screen.
+- **Clinical Evidence Gate:** Verifies body containment, landmark confidence, camera distance, and side alignment before scoring repetitions.
+- **Real-Time Auditory Coaching:** Event-driven voice feedback vocalizes rep counts and posture cues ("Rep 1! Good depth", "Stand all the way up").
+- **Offline-First Local Persistence:** All session metadata, rep records, and evidence events are written to local Room SQLite first, then synchronized automatically via local ADB reverse, LAN IP, or dynamic Wi-Fi DHCP default gateway.
+- **Clinician Web Portal:** Real-time dashboard displaying patient session histories, peak flexion curves, rep-by-rep durations, and evidence alerts with zero mock data.
 
 ---
 
@@ -86,7 +117,7 @@ KinexMed/
 │   │   ├── java/com/kinexmed/
 │   │   │   ├── audio/       # Text-to-Speech Voice Feedback Manager
 │   │   │   ├── data/        # Room Database, DAOs, Entities, Repository
-│   │   │   ├── domain/      # FSM, Evidence Engine, Geometry, One-Euro Filter
+│   │   │   ├── domain/      # FSM, Evidence Engine, Geometry, One-Euro Filter, Registry
 │   │   │   ├── mediapipe/   # MediaPipe Pose Landmarker Helper (CPU Delegate)
 │   │   │   ├── sync/        # Background Network SyncManager
 │   │   │   └── ui/          # Activities, Canvas Overlays, UI Adapters
@@ -98,15 +129,23 @@ KinexMed/
 │   │   ├── api/             # REST endpoints (/health, /sessions, /devices)
 │   │   ├── core/            # Database engine, SQLAlchemy session setup
 │   │   ├── models/          # Database models (Session, Rep, EvidenceEvent)
-│   │   └── schemas/         # Pydantic validation schemas
+│   │   ├── schemas/         # Pydantic validation schemas
+│   │   └── services/        # Dynamic session summary generator
 │   └── tests/               # Backend integration and endpoint tests
 │
-└── web/                     # Clinician Dashboard Frontend (React + Vite)
-    ├── src/
-    │   ├── components/      # UI cards, badges, ROM charts, rep tables
-    │   ├── services/        # Backend API client
-    │   └── App.jsx          # Main clinician portal view
-    └── package.json
+├── docs/                    # Architecture, Traceability, and Validation Documentation
+│   ├── FINAL_AUDIT.md       # Engineering audit and reality reconciliation
+│   ├── PPT_REQUIREMENTS_TRACEABILITY.md # Master traceability matrix
+│   └── VALIDATION.md        # Physical testing matrix and performance benchmarks
+│
+├── web/                     # Clinician Dashboard Frontend (React + Vite)
+│   ├── src/
+│   │   ├── components/      # UI cards, badges, ROM charts, rep tables
+│   │   ├── services/        # Backend API client
+│   │   └── App.jsx          # Main clinician portal view
+│   └── package.json
+└── .github/workflows/       # GitHub Actions CI workflow
+    └── ci.yml
 ```
 
 ---
@@ -131,7 +170,7 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install fastapi uvicorn sqlalchemy pydantic httpx pytest
+pip install -r requirements.txt
 
 # Start backend server
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -146,7 +185,7 @@ Verify backend health at: `http://localhost:8000/health`
 cd web
 
 # Install dependencies
-pnpm install  # or npm install
+pnpm install
 
 # Launch Vite dev server
 pnpm dev --port 5173
@@ -160,7 +199,7 @@ Open the Clinician Portal at: `http://localhost:5173`
 Connect your Android phone with USB or Wireless ADB debugging enabled:
 
 ```bash
-# Enable reverse port-forwarding so the phone can reach the local FastAPI server
+# Enable reverse port-forwarding so the phone reaches the local FastAPI server
 adb reverse tcp:8000 tcp:8000
 
 cd android
@@ -171,24 +210,30 @@ cd android
 
 ---
 
-## Running an Exercise Session
+## Running Automated Tests
 
-1. Open **KinexMed** on your Android device.
-2. Select **Bilateral Squat** or **Sit-to-Stand**.
-3. Follow the setup guidance: prop your phone upright on a sturdy surface at knee height.
-4. Step back 2.0–3.0 meters until your full body is framed.
-5. Tap **START SESSION** (or allow the audible countdown to initiate tracking).
-6. Perform your repetitions. Listen to the audible rep count and real-time posture coaching.
-7. Tap **Finish Session** (or press back to confirm).
-8. The session is committed to the local Room database and instantly synchronized to the **Clinician Web Portal** at `http://localhost:5173`.
+Run the complete automated verification suite:
+
+```bash
+# 1. Backend API & Kinematics Tests (37 tests)
+python -m pytest backend/tests -v
+
+# 2. Android Domain & Registry Unit Tests (22 tests)
+cd android
+./gradlew testDebugUnitTest
+
+# 3. Web Dashboard Production Build
+cd web
+pnpm build
+```
 
 ---
 
 ## Privacy and Safety
 
 - **Zero Video Transmission:** Raw camera frames are processed in-memory via CameraX `ImageAnalysis` and immediately freed. No video recordings are saved or transmitted.
-- **Encrypted Local Storage:** Patient records remain on-device in Room SQLite until transmitted to authorized endpoints.
-- **Medical Disclaimer:** KinexMed is an assistive clinical measurement tool and is not a substitute for professional medical diagnosis.
+- **Local-First On-Device Persistence:** Patient records remain on-device in Room SQLite until transmitted to authorized clinician endpoints.
+- **Medical Disclaimer:** KinexMed is an assistive clinical movement observation tool and is not a substitute for professional medical diagnosis or treatment prescription.
 
 ---
 

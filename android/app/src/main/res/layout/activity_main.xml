@@ -169,11 +169,80 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
-                android:layout_marginBottom="12dp"
-                android:text="Prescribed Exercises"
+                android:layout_marginBottom="8dp"
+                android:text="Prescribed Exercises (15 Modules)"
                 android:textColor="#E2E8F0"
                 android:textSize="16sp"
                 android:textStyle="bold" />
+
+            <!-- Category Filter Chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="14dp">
+
+                <LinearLayout
+                    android:id="@+id/llCategoryChips"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/chipAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="All (15)"
+                        android:textSize="11sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#06B6D4"
+                        android:paddingHorizontal="14dp"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/chipLowerBody"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Lower Body (8)"
+                        android:textSize="11sp"
+                        android:textColor="#94A3B8"
+                        android:backgroundTint="#161B26"
+                        android:paddingHorizontal="14dp"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/chipUpperBody"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Upper Body (4)"
+                        android:textSize="11sp"
+                        android:textColor="#94A3B8"
+                        android:backgroundTint="#161B26"
+                        android:paddingHorizontal="14dp"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/chipFunctional"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Functional (2)"
+                        android:textSize="11sp"
+                        android:textColor="#94A3B8"
+                        android:backgroundTint="#161B26"
+                        android:paddingHorizontal="14dp"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/chipBalance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="Balance (1)"
+                        android:textSize="11sp"
+                        android:textColor="#94A3B8"
+                        android:backgroundTint="#161B26"
+                        android:paddingHorizontal="14dp" />
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <!-- Exercises Container (Populated dynamically from ExerciseRegistry) -->
             <LinearLayout

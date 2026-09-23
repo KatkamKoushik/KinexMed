@@ -1,0 +1,61 @@
+name: KinexMed CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-tests:
+    name: Backend API & Geometry Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+      - name: Run Pytest
+        run: |
+          python -m pytest backend/tests -v
+
+  web-build:
+    name: Web Dashboard Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - name: Install dependencies & Build
+        run: |
+          cd web
+          pnpm install
+          pnpm build
+
+  android-unit-tests:
+    name: Android Multi-Exercise Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+      - name: Run Android Unit Tests
+        run: |
+          cd android
+          ./gradlew testDebugUnitTest --no-daemon

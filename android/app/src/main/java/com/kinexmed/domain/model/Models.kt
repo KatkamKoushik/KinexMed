@@ -113,27 +113,48 @@ data class RepRecord(
     val failureReasons: List<String> = emptyList()
 )
 
-enum class ExerciseType(val id: String, val displayName: String) {
-    SQUAT("squat", "Bilateral Squat"),
-    SIT_TO_STAND("sit_to_stand", "Sit-to-Stand"),
-    LUNGE("lunge", "Reverse/Forward Lunge"),
-    CALF_RAISE("calf_raise", "Calf Raise");
+enum class ExerciseCategory(val displayName: String) {
+    LOWER_BODY("Lower Body"),
+    UPPER_BODY("Upper Body"),
+    FUNCTIONAL_MOBILITY("Functional & Mobility"),
+    BALANCE("Balance & Stability")
+}
+
+enum class ExerciseType(val id: String, val displayName: String, val category: ExerciseCategory) {
+    SQUAT("squat", "Bilateral Squat", ExerciseCategory.LOWER_BODY),
+    SIT_TO_STAND("sit_to_stand", "Sit-to-Stand", ExerciseCategory.LOWER_BODY),
+    FORWARD_LUNGE("forward_lunge", "Forward Lunge", ExerciseCategory.LOWER_BODY),
+    REVERSE_LUNGE("reverse_lunge", "Reverse Lunge", ExerciseCategory.LOWER_BODY),
+    CALF_RAISE("calf_raise", "Calf Raise", ExerciseCategory.LOWER_BODY),
+    KNEE_EXTENSION("knee_extension", "Seated Knee Extension", ExerciseCategory.LOWER_BODY),
+    HIP_ABDUCTION("hip_abduction", "Standing Hip Abduction", ExerciseCategory.LOWER_BODY),
+    HIP_EXTENSION("hip_extension", "Standing Hip Extension", ExerciseCategory.LOWER_BODY),
+    MARCHING_IN_PLACE("marching_in_place", "Marching in Place", ExerciseCategory.FUNCTIONAL_MOBILITY),
+    SHOULDER_FLEXION("shoulder_flexion", "Shoulder Flexion", ExerciseCategory.UPPER_BODY),
+    SHOULDER_ABDUCTION("shoulder_abduction", "Shoulder Abduction", ExerciseCategory.UPPER_BODY),
+    ELBOW_FLEXION("elbow_flexion", "Elbow Flexion (Bicep Curl)", ExerciseCategory.UPPER_BODY),
+    ELBOW_EXTENSION("elbow_extension", "Elbow Extension (Tricep)", ExerciseCategory.UPPER_BODY),
+    HEEL_TOE_RAISE("heel_toe_raise", "Heel-to-Toe Rocking", ExerciseCategory.FUNCTIONAL_MOBILITY),
+    SINGLE_LEG_BALANCE("single_leg_balance", "Supported Single-Leg Balance", ExerciseCategory.BALANCE);
 
     companion object {
         fun fromId(id: String): ExerciseType {
-            return entries.find { it.id.equals(id, ignoreCase = true) } ?: SQUAT
+            return entries.find { it.id.equals(id, ignoreCase = true) }
+                ?: if (id.equals("lunge", ignoreCase = true)) FORWARD_LUNGE else SQUAT
         }
     }
 }
 
-enum class ExerciseValidationStatus {
-    VALIDATED,
-    NOT_YET_VALIDATED
+enum class ExerciseValidationStatus(val label: String) {
+    PHYSICALLY_DEMONSTRATED("Physically Demonstrated"),
+    IMPLEMENTED_MODULE("Implemented Module"),
+    PLANNED("Planned")
 }
 
 data class ExerciseDefinition(
     val type: ExerciseType,
     val displayName: String,
+    val category: ExerciseCategory,
     val status: ExerciseValidationStatus,
     val shortDescription: String,
     val instructions: List<String>,

@@ -142,7 +142,8 @@ class SquatStateMachine(
 
         // Evidence is sufficient: clear evidence loss timer
         lastEvidenceFailTimeMs = 0L
-        val angleDelta = smoothedAngle - prevAngle // positive = extending, negative = flexing
+        val lastAngle = prevAngle
+        val angleDelta = smoothedAngle - lastAngle // positive = extending, negative = flexing
         prevAngle = smoothedAngle
 
         var completedRep: RepRecord? = null
@@ -236,7 +237,7 @@ class SquatStateMachine(
                 feedbackMessage = "Stand all the way up to complete rep"
 
                 // Check for incomplete return: reversed downward before fully standing upright
-                val isReversingDownward = (smoothedAngle <= prevAngle - 3.5) && (smoothedAngle < config.descentStartThreshold)
+                val isReversingDownward = (smoothedAngle <= lastAngle - 4.5) && (smoothedAngle < config.descentStartThreshold - 10.0)
                 if (isReversingDownward && (timestampMs - repStartTimeMs) >= config.minRepDurationMs) {
                     val durationMs = (timestampMs - repStartTimeMs).coerceAtLeast(0L)
                     val failureReasons = mutableListOf<String>()

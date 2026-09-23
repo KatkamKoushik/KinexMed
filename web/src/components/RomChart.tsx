@@ -44,9 +44,11 @@ export const RomChart: React.FC<RomChartProps> = ({
       case 'sit_to_stand':
         return {
           metricName: 'Extension Angle',
-          targetLabel: 'Target Stand (≥155°)',
-          targetVal: 155
+          targetLabel: 'Target Stand (≥148°)',
+          targetVal: 148
         };
+      case 'forward_lunge':
+      case 'reverse_lunge':
       case 'lunge':
         return {
           metricName: 'Lead Knee Angle',
@@ -56,8 +58,68 @@ export const RomChart: React.FC<RomChartProps> = ({
       case 'calf_raise':
         return {
           metricName: 'Ankle Plantarflexion',
-          targetLabel: 'Target Heel Rise (≥120°)',
-          targetVal: 120
+          targetLabel: 'Target Heel Rise (≥115°)',
+          targetVal: 115
+        };
+      case 'knee_extension':
+        return {
+          metricName: 'Knee Extension',
+          targetLabel: 'Target Extension (≥145°)',
+          targetVal: 145
+        };
+      case 'hip_abduction':
+        return {
+          metricName: 'Hip Abduction Angle',
+          targetLabel: 'Target Abduction (≤150°)',
+          targetVal: 150
+        };
+      case 'hip_extension':
+        return {
+          metricName: 'Hip Extension Angle',
+          targetLabel: 'Target Extension (≤152°)',
+          targetVal: 152
+        };
+      case 'marching_in_place':
+        return {
+          metricName: 'Hip Flexion Angle',
+          targetLabel: 'Target Flexion (≤110°)',
+          targetVal: 110
+        };
+      case 'shoulder_flexion':
+        return {
+          metricName: 'Shoulder Flexion Angle',
+          targetLabel: 'Target Flexion (≥90°)',
+          targetVal: 90
+        };
+      case 'shoulder_abduction':
+        return {
+          metricName: 'Shoulder Abduction Angle',
+          targetLabel: 'Target Abduction (≥90°)',
+          targetVal: 90
+        };
+      case 'elbow_flexion':
+        return {
+          metricName: 'Elbow Flexion (Curl)',
+          targetLabel: 'Target Flexion (≤70°)',
+          targetVal: 70
+        };
+      case 'elbow_extension':
+        return {
+          metricName: 'Elbow Extension',
+          targetLabel: 'Target Extension (≥145°)',
+          targetVal: 145
+        };
+      case 'heel_toe_raise':
+        return {
+          metricName: 'Ankle Rocking Motion',
+          targetLabel: 'Target Motion (≥112°)',
+          targetVal: 112
+        };
+      case 'single_leg_balance':
+        return {
+          metricName: 'Balance Hold Duration',
+          targetLabel: 'Target Hold (≥10s)',
+          targetVal: 10
         };
       case 'squat':
       default:

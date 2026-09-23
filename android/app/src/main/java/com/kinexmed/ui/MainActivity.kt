@@ -34,6 +34,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnHistory: ImageButton
     private lateinit var btnSettings: ImageButton
 
+    private lateinit var chipAll: Button
+    private lateinit var chipLowerBody: Button
+    private lateinit var chipUpperBody: Button
+    private lateinit var chipFunctional: Button
+    private lateinit var chipBalance: Button
+
+    private var selectedCategory: com.kinexmed.domain.model.ExerciseCategory? = null
     private lateinit var sessionRepository: SessionRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +60,18 @@ class MainActivity : AppCompatActivity() {
         btnHistory = findViewById(R.id.btnHistory)
         btnSettings = findViewById(R.id.btnSettings)
 
+        chipAll = findViewById(R.id.chipAll)
+        chipLowerBody = findViewById(R.id.chipLowerBody)
+        chipUpperBody = findViewById(R.id.chipUpperBody)
+        chipFunctional = findViewById(R.id.chipFunctional)
+        chipBalance = findViewById(R.id.chipBalance)
+
+        chipAll.setOnClickListener { selectCategory(null) }
+        chipLowerBody.setOnClickListener { selectCategory(com.kinexmed.domain.model.ExerciseCategory.LOWER_BODY) }
+        chipUpperBody.setOnClickListener { selectCategory(com.kinexmed.domain.model.ExerciseCategory.UPPER_BODY) }
+        chipFunctional.setOnClickListener { selectCategory(com.kinexmed.domain.model.ExerciseCategory.FUNCTIONAL_MOBILITY) }
+        chipBalance.setOnClickListener { selectCategory(com.kinexmed.domain.model.ExerciseCategory.BALANCE) }
+
         btnHistory.setOnClickListener {
             val intent = Intent(this, SessionHistoryActivity::class.java)
             startActivity(intent)
@@ -64,11 +83,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun selectCategory(category: com.kinexmed.domain.model.ExerciseCategory?) {
+        selectedCategory = category
+        updateChipStyles()
+        populateExercises()
+    }
+
+    private fun updateChipStyles() {
+        val activeBg = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#06B6D4"))
+        val inactiveBg = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#161B26"))
+        val activeText = android.graphics.Color.parseColor("#FFFFFF")
+        val inactiveText = android.graphics.Color.parseColor("#94A3B8")
+
+        val chips = listOf(
+            chipAll to (selectedCategory == null),
+            chipLowerBody to (selectedCategory == com.kinexmed.domain.model.ExerciseCategory.LOWER_BODY),
+            chipUpperBody to (selectedCategory == com.kinexmed.domain.model.ExerciseCategory.UPPER_BODY),
+            chipFunctional to (selectedCategory == com.kinexmed.domain.model.ExerciseCategory.FUNCTIONAL_MOBILITY),
+            chipBalance to (selectedCategory == com.kinexmed.domain.model.ExerciseCategory.BALANCE)
+        )
+
+        for ((chip, isActive) in chips) {
+            chip.backgroundTintList = if (isActive) activeBg else inactiveBg
+            chip.setTextColor(if (isActive) activeText else inactiveText)
+        }
+    }
+
     private fun populateExercises() {
         llExercisesContainer.removeAllViews()
         val inflater = LayoutInflater.from(this)
 
-        for (exercise in ExerciseRegistry.exercises) {
+        val list = if (selectedCategory == null) {
+            ExerciseRegistry.exercises
+        } else {
+            ExerciseRegistry.getByCategory(selectedCategory!!)
+        }
+
+        for (exercise in list) {
             val cardView = inflater.inflate(R.layout.item_exercise_card, llExercisesContainer, false)
 
             val tvTitle: TextView = cardView.findViewById(R.id.tvExerciseTitle)
@@ -85,23 +136,40 @@ class MainActivity : AppCompatActivity() {
             tvMetricTarget.text = exercise.targetMetricTarget
             tvDistance.text = exercise.cameraDistance
 
-            if (exercise.status == ExerciseValidationStatus.VALIDATED) {
-                tvBadge.text = "VALIDATED"
-                tvBadge.setBackgroundResource(R.drawable.bg_badge_cyan)
-                tvBadge.setTextColor(android.graphics.Color.parseColor("#06B6D4"))
-                btnStart.isEnabled = true
-                btnStart.text = "Start ${exercise.displayName}"
-                btnStart.setOnClickListener {
-                    val intent = Intent(this, ExercisePreparationActivity::class.java).apply {
-                        putExtra(ExercisePreparationActivity.EXTRA_EXERCISE_ID, exercise.type.id)
+            when (exercise.status) {
+                ExerciseValidationStatus.PHYSICALLY_DEMONSTRATED -> {
+                    tvBadge.text = "DEMONSTRATED"
+                    tvBadge.setBackgroundResource(R.drawable.bg_badge_green)
+                    tvBadge.setTextColor(android.graphics.Color.parseColor("#10B981"))
+                    btnStart.isEnabled = true
+                    btnStart.text = "Start ${exercise.displayName}"
+                    btnStart.setOnClickListener {
+                        val intent = Intent(this, ExercisePreparationActivity::class.java).apply {
+                            putExtra(ExercisePreparationActivity.EXTRA_EXERCISE_ID, exercise.type.id)
+                        }
+                        startActivity(intent)
                     }
-                    startActivity(intent)
                 }
-            } else {
-                tvBadge.text = "NOT YET VALIDATED"
-                tvBadge.setTextColor(android.graphics.Color.parseColor("#94A3B8"))
-                btnStart.isEnabled = false
-                btnStart.text = "Under Validation"
+                ExerciseValidationStatus.IMPLEMENTED_MODULE -> {
+                    tvBadge.text = "IMPLEMENTED MODULE"
+                    tvBadge.setBackgroundResource(R.drawable.bg_badge_cyan)
+                    tvBadge.setTextColor(android.graphics.Color.parseColor("#06B6D4"))
+                    btnStart.isEnabled = true
+                    btnStart.text = "Start ${exercise.displayName}"
+                    btnStart.setOnClickListener {
+                        val intent = Intent(this, ExercisePreparationActivity::class.java).apply {
+                            putExtra(ExercisePreparationActivity.EXTRA_EXERCISE_ID, exercise.type.id)
+                        }
+                        startActivity(intent)
+                    }
+                }
+                ExerciseValidationStatus.PLANNED -> {
+                    tvBadge.text = "PLANNED"
+                    tvBadge.setBackgroundResource(R.drawable.bg_badge_amber)
+                    tvBadge.setTextColor(android.graphics.Color.parseColor("#F59E0B"))
+                    btnStart.isEnabled = false
+                    btnStart.text = "Under Development"
+                }
             }
 
             llExercisesContainer.addView(cardView)

@@ -45,10 +45,22 @@ class SyncManager(
         if (!configuredUrl.isNullOrEmpty()) {
             list.add(configuredUrl)
         }
-        if (!list.contains("http://127.0.0.1:8000")) list.add("http://127.0.0.1:8000") // ADB reverse port forward
-        if (!list.contains("http://192.168.0.11:8000")) list.add("http://192.168.0.11:8000") // Wi-Fi LAN IP (PC)
-        if (!list.contains("http://192.168.0.10:8000")) list.add("http://192.168.0.10:8000") // Wi-Fi LAN fallback
-        if (!list.contains("http://10.0.2.2:8000")) list.add("http://10.0.2.2:8000") // Emulator loopback
+        // 1. ADB reverse loopback (PC port 8000 forwarded to device loopback)
+        if (!list.contains("http://127.0.0.1:8000")) list.add("http://127.0.0.1:8000")
+        // 2. Android emulator host loopback
+        if (!list.contains("http://10.0.2.2:8000")) list.add("http://10.0.2.2:8000")
+
+        // 3. Dynamic Wi-Fi DHCP default gateway
+        try {
+            val wifiMgr = context?.applicationContext?.getSystemService(Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
+            val dhcp = wifiMgr?.dhcpInfo
+            if (dhcp != null && dhcp.gateway != 0) {
+                val gw = android.text.format.Formatter.formatIpAddress(dhcp.gateway)
+                val gwUrl = "http://$gw:8000"
+                if (!list.contains(gwUrl)) list.add(gwUrl)
+            }
+        } catch (_: Exception) {}
+
         return list
     }
 

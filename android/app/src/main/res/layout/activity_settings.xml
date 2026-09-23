@@ -249,7 +249,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="KinexMed processes all video frames 100% locally on your device CPU/NPU using on-device MediaPipe models.\n\nRaw video and camera feeds are NEVER recorded, saved, or uploaded to any server or cloud. Only deterministic joint coordinates, derived angles, and repetition metrics are stored in your local Room database."
+                        android:text="KinexMed processes all video frames 100% locally on your device CPU using on-device MediaPipe models.\n\nRaw video and camera feeds are NEVER recorded, saved, or uploaded to any server or cloud. Only deterministic joint coordinates, derived angles, and repetition metrics are stored in your local Room database."
                         android:textColor="#94A3B8"
                         android:textSize="12sp"
                         android:lineSpacingExtra="3dp" />

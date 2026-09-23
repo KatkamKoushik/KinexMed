@@ -21,7 +21,6 @@ class SitToStandStateMachineTest {
         standingHipMinAngle = 150.0,
         minRepDurationMs = 800L,
         maxRepDurationMs = 8000L,
-        hysteresisDwellFrames = 2,
         evidenceGracePeriodMs = 1000L
     )
 
