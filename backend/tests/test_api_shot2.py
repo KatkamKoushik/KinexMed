@@ -21,7 +21,8 @@ def test_health_endpoint_with_db_ping():
     data = response.json()
     assert data["status"] == "healthy"
     assert data["database"] == "connected"
-    assert data["version"] == "1.0.0"
+    assert data["version"] == "1.2.0"
+
 
 def test_duplicate_session_idempotency():
     """

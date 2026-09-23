@@ -142,5 +142,6 @@ def health_check(db: Session = Depends(get_db)):
         "status": "healthy",
         "database": db_status,
         "service": "KinexMed Rehabilitation API",
-        "version": "1.0.0"
+        "version": "1.2.0"
     }
+

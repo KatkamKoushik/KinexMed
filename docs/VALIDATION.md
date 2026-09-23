@@ -44,14 +44,19 @@ All vision inference runs 100% locally on the device using the MediaPipe Pose La
 
 ## 3. Automated Test Verification Summary
 
-- **Backend API & Kinematics (Pytest):** 37 tests passed (0 failures)
+- **Backend API & Kinematics (Pytest):** 39 tests passed (0 failures)
   - Multi-exercise dynamic summary formatting
   - Session ingestion across all 15 exercises
   - Repetition idempotency and deduplication
+  - Exercise plan CRUD, feedback, and clinical reports
   - Non-diagnostic clinical safety guardrails
-- **Android Domain & State Machines (JUnit):** 22 tests passed (0 failures)
+- **Android Domain, Consistency & State Machines (JUnit):** 28 tests passed (0 failures)
   - ExerciseRegistry discovery and category integrity
+  - ConsistencyCalculator pure streak and adherence aggregation
+  - CaregiverShareHelper privacy-safe report formatting
+  - ReportGenerator factual adherence metrics
   - Zero-lag Sit-to-Stand state transitions
   - Squat inflection and lockout detection
   - Landmark metric extraction across all 15 exercise models
-- **Web Clinician Dashboard (Vite & TypeScript):** 0 errors, production build verified in 186ms
+- **Web Clinician Dashboard (Vite & TypeScript):** 0 errors, production build verified in 190ms
+

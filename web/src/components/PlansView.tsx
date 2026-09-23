@@ -4,21 +4,21 @@ import { fetchPlans, createPlan, updatePlan, deletePlan } from '../api/client';
 import { Plus, Check, Trash2, Calendar, Target, Activity, AlertCircle } from 'lucide-react';
 
 const AVAILABLE_EXERCISES = [
-  { id: 'squat', label: 'Squat' },
-  { id: 'lunge', label: 'Lunge' },
-  { id: 'high_knees', label: 'High Knees' },
-  { id: 'glute_bridge', label: 'Glute Bridge' },
-  { id: 'jumping_jacks', label: 'Jumping Jacks' },
-  { id: 'calf_raises', label: 'Calf Raises' },
-  { id: 'arm_circles', label: 'Arm Circles' },
-  { id: 'standing_side_leg_raise', label: 'Standing Side Leg Raise' },
-  { id: 'seated_knee_extension', label: 'Seated Knee Extension' },
-  { id: 'hip_abduction', label: 'Hip Abduction' },
-  { id: 'hamstring_curl', label: 'Hamstring Curl' },
-  { id: 'quad_sets', label: 'Quad Sets' },
-  { id: 'heel_slides', label: 'Heel Slides' },
-  { id: 'straight_leg_raise', label: 'Straight Leg Raise' },
-  { id: 'shoulder_flexion', label: 'Shoulder Flexion' }
+  { id: 'sit_to_stand', label: 'Sit-to-Stand' },
+  { id: 'squat', label: 'Bilateral Squat' },
+  { id: 'forward_lunge', label: 'Forward Lunge' },
+  { id: 'reverse_lunge', label: 'Reverse Lunge' },
+  { id: 'calf_raise', label: 'Calf Raise' },
+  { id: 'knee_extension', label: 'Seated Knee Extension' },
+  { id: 'hip_abduction', label: 'Standing Hip Abduction' },
+  { id: 'hip_extension', label: 'Standing Hip Extension' },
+  { id: 'shoulder_flexion', label: 'Shoulder Flexion' },
+  { id: 'shoulder_abduction', label: 'Shoulder Abduction' },
+  { id: 'elbow_flexion', label: 'Elbow Flexion (Bicep Curl)' },
+  { id: 'elbow_extension', label: 'Elbow Extension (Tricep)' },
+  { id: 'marching_in_place', label: 'Marching in Place' },
+  { id: 'heel_toe_raise', label: 'Heel-to-Toe Rocking' },
+  { id: 'single_leg_balance', label: 'Supported Single-Leg Balance' }
 ];
 
 export const PlansView: React.FC = () => {
@@ -34,9 +34,10 @@ export const PlansView: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const [exercises, setExercises] = useState<PlanExercise[]>([
     { exercise_type: 'squat', target_sets: 3, target_reps: 10, order_index: 0 },
-    { exercise_type: 'lunge', target_sets: 3, target_reps: 8, order_index: 1 }
+    { exercise_type: 'sit_to_stand', target_sets: 3, target_reps: 8, order_index: 1 }
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   const loadPlans = async () => {
     try {
@@ -80,9 +81,10 @@ export const PlansView: React.FC = () => {
   const handleAddExerciseRow = () => {
     setExercises((prev) => [
       ...prev,
-      { exercise_type: 'seated_knee_extension', target_sets: 3, target_reps: 10, order_index: prev.length }
+      { exercise_type: 'knee_extension', target_sets: 3, target_reps: 10, order_index: prev.length }
     ]);
   };
+
 
   const handleRemoveExerciseRow = (index: number) => {
     setExercises((prev) => prev.filter((_, idx) => idx !== index));
@@ -125,8 +127,9 @@ export const PlansView: React.FC = () => {
       setFrequency(5);
       setExercises([
         { exercise_type: 'squat', target_sets: 3, target_reps: 10, order_index: 0 },
-        { exercise_type: 'lunge', target_sets: 3, target_reps: 8, order_index: 1 }
+        { exercise_type: 'sit_to_stand', target_sets: 3, target_reps: 8, order_index: 1 }
       ]);
+
       await loadPlans();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to create plan';

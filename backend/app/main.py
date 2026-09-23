@@ -15,7 +15,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="KinexMed Rehabilitation API",
     description="Real-time on-device session recording, clinician dashboard, plans, and feedback backend.",
-    version="1.1.0"
+    version="1.2.0"
 )
 
 # Configure CORS for local web dashboard and Android app
@@ -37,8 +37,9 @@ def health_check():
     return {
         "status": "healthy",
         "service": "KinexMed API",
-        "version": "1.0.0"
+        "version": "1.2.0"
     }
+
 
 if __name__ == "__main__":
     import uvicorn

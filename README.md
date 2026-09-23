@@ -154,12 +154,13 @@ KinexMed/
 │
 ├── backend/                 # FastAPI Asynchronous REST Backend (Python)
 │   ├── app/
-│   │   ├── api/             # REST endpoints (/health, /sessions, /devices)
+│   │   ├── api/             # REST endpoints (/health, /sessions, /plans, /feedback, /reports)
 │   │   ├── core/            # Database engine, SQLAlchemy session setup
-│   │   ├── models/          # Database models (Session, Rep, EvidenceEvent)
-│   │   ├── schemas/         # Pydantic validation schemas
+│   │   ├── models/          # Database models (Session, Rep, EvidenceEvent, Plan, Feedback)
+│   │   ├── schemas/         # Pydantic validation schemas (Session, Plan, Feedback)
 │   │   └── services/        # Dynamic session summary generator
 │   └── tests/               # Backend integration and endpoint tests
+
 │
 ├── docs/                    # Architecture, Traceability, and Validation Documentation
 │   ├── FINAL_IMPLEMENTATION_AUDIT.md # Comprehensive engineering & reality audit
