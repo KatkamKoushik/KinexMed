@@ -1,5 +1,7 @@
 # KinexMed — Clinical Movement Intelligence and Multi-Exercise Rehabilitation Platform
 
+[![Release](https://img.shields.io/badge/Release-v1.2.0-blue.svg)](https://github.com/KatkamKoushik/KinexMed/releases/tag/v1.2.0)
+[![APK](https://img.shields.io/badge/Download-APK%20(v1.2.0)-success.svg)](https://github.com/KatkamKoushik/KinexMed/releases/download/v1.2.0/app-debug.apk)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Android](https://img.shields.io/badge/Android-API%2026%2B-3DDC84.svg?style=flat&logo=android)](https://developer.android.com)
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose%20Landmarker-007ACC.svg?style=flat)](https://developers.google.com/mediapipe)
@@ -11,6 +13,22 @@
 **KinexMed** is an edge-native, real-time physical rehabilitation observation platform. It enables patients to perform prescribed physical therapy exercises under automated on-device observation using a standard Android smartphone, while streaming validated kinematic metrics to a clinician portal.
 
 KinexMed operates on a strict **zero-mock-data integrity** principle: all telemetry, range-of-motion measurements, and repetition timestamps originate solely from live on-device anatomical landmark geometry.
+
+---
+
+## Latest Release & Android APK Download
+
+The latest pre-compiled Android APK (**v1.2.0**) is available directly via GitHub Releases:
+
+- **Direct APK Download:** [Download KinexMed v1.2.0 APK (`app-debug.apk`)](https://github.com/KatkamKoushik/KinexMed/releases/download/v1.2.0/app-debug.apk)
+- **GitHub Release Page:** [KinexMed v1.2.0 Release Notes](https://github.com/KatkamKoushik/KinexMed/releases/tag/v1.2.0)
+- **Local Build Output:** `android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Installing on Android Device via ADB
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
 
 ---
 
@@ -33,6 +51,7 @@ This prototype was built by:
 - Email: [nivedankatkam@gmail.com](mailto:nivedankatkam@gmail.com)
 - GitHub: [https://github.com/nivedankatkam](https://github.com/nivedankatkam)
 - LinkedIn: [https://www.linkedin.com/in/katkam-nivedan-442376272/](https://www.linkedin.com/in/katkam-nivedan-442376272/)
+
 
 ---
 
@@ -103,8 +122,17 @@ flowchart LR
 - **Hands-Free Start:** 1.5 seconds of continuous stable framing triggers an audible 5-second countdown ("5, 4, 3, 2, 1, Begin!") with auto-session start, allowing patients to position themselves 2.5m away without touching the screen.
 - **Clinical Evidence Gate:** Verifies body containment, landmark confidence, camera distance, and side alignment before scoring repetitions.
 - **Real-Time Auditory Coaching:** Event-driven voice feedback vocalizes rep counts and posture cues ("Rep 1! Good depth", "Stand all the way up").
+- **Prescribed Exercise Plans:** Configurable rehabilitation regimens across 15 exercises specifying target sets, reps, and weekly frequency, managed on both Android and Web.
+- **Consistency & Streak Engine:** Pure functional calculation querying real SQLite session timestamps to compute consecutive workout streaks, longest streak, and weekly goal adherence with zero mock data.
+- **Weekly & Monthly Patient Progress:** Dedicated analytical screen providing WEEK and MONTH adherence toggles, volume metrics, and primary form failure breakdowns.
+- **Dedicated Session Summary & Scoring:** Transparent form score model based on completed-to-attempted ratios and ROM depth achievement, with primary rejection cause analysis.
+- **Caregiver Share Sheet:** Standard Android `Intent.ACTION_SEND` integration generating structured, privacy-safe text summaries for family and caregivers (zero raw video exposure).
+- **Automated Clinical Adherence Reports:** Factual Session, Weekly, and Monthly reports generated via FastAPI endpoints and visualized on the clinician portal with one-tap text export.
+- **Clinician Feedback Pipeline:** Direct consultation notes and form modification guidance attached to session records and rendered chronologically.
+- **iQOO Office Kit Integration:** Documented phone-to-laptop integration bridging mobile edge computer vision with laptop clinician review via screen casting and local network telemetry.
 - **Offline-First Local Persistence:** All session metadata, rep records, and evidence events are written to local Room SQLite first, then synchronized automatically via local ADB reverse, LAN IP, or dynamic Wi-Fi DHCP default gateway.
 - **Clinician Web Portal:** Real-time dashboard displaying patient session histories, peak flexion curves, rep-by-rep durations, and evidence alerts with zero mock data.
+
 
 ---
 
