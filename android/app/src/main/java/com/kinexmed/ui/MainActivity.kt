@@ -32,8 +32,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvSyncStatusSummary: TextView
     private lateinit var llExercisesContainer: LinearLayout
     private lateinit var btnChat: ImageButton
+    private lateinit var btnProgress: ImageButton
+    private lateinit var btnPlans: ImageButton
     private lateinit var btnHistory: ImageButton
     private lateinit var btnSettings: ImageButton
+    private lateinit var cardConsistencyBanner: androidx.cardview.widget.CardView
+    private lateinit var tvMainCurrentStreak: TextView
+    private lateinit var tvMainWeeklyGoal: TextView
+    private lateinit var cardActivePlanBanner: androidx.cardview.widget.CardView
+    private lateinit var tvMainActivePlanTitle: TextView
+    private lateinit var tvMainActivePlanSubtitle: TextView
     private lateinit var cardRehabAssistantBanner: androidx.cardview.widget.CardView
 
     private lateinit var chipAll: Button
@@ -44,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private var selectedCategory: com.kinexmed.domain.model.ExerciseCategory? = null
     private lateinit var sessionRepository: SessionRepository
+    private lateinit var planRepository: com.kinexmed.data.repository.PlanRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,12 +69,36 @@ class MainActivity : AppCompatActivity() {
         tvSyncStatusSummary = findViewById(R.id.tvSyncStatusSummary)
         llExercisesContainer = findViewById(R.id.llExercisesContainer)
         btnChat = findViewById(R.id.btnChat)
+        btnProgress = findViewById(R.id.btnProgress)
+        btnPlans = findViewById(R.id.btnPlans)
         btnHistory = findViewById(R.id.btnHistory)
         btnSettings = findViewById(R.id.btnSettings)
+        cardConsistencyBanner = findViewById(R.id.cardConsistencyBanner)
+        tvMainCurrentStreak = findViewById(R.id.tvMainCurrentStreak)
+        tvMainWeeklyGoal = findViewById(R.id.tvMainWeeklyGoal)
+        cardActivePlanBanner = findViewById(R.id.cardActivePlanBanner)
+        tvMainActivePlanTitle = findViewById(R.id.tvMainActivePlanTitle)
+        tvMainActivePlanSubtitle = findViewById(R.id.tvMainActivePlanSubtitle)
         cardRehabAssistantBanner = findViewById(R.id.cardRehabAssistantBanner)
 
         btnChat.setOnClickListener {
             startActivity(Intent(this, ChatActivity::class.java))
+        }
+
+        btnProgress.setOnClickListener {
+            startActivity(Intent(this, ProgressActivity::class.java))
+        }
+
+        btnPlans.setOnClickListener {
+            startActivity(Intent(this, PlansActivity::class.java))
+        }
+
+        cardConsistencyBanner.setOnClickListener {
+            startActivity(Intent(this, ProgressActivity::class.java))
+        }
+
+        cardActivePlanBanner.setOnClickListener {
+            startActivity(Intent(this, PlansActivity::class.java))
         }
 
         cardRehabAssistantBanner.setOnClickListener {
@@ -140,6 +173,7 @@ class MainActivity : AppCompatActivity() {
             val tvMetricLabel: TextView = cardView.findViewById(R.id.tvMetricLabel)
             val tvMetricTarget: TextView = cardView.findViewById(R.id.tvMetricTarget)
             val tvDistance: TextView = cardView.findViewById(R.id.tvCameraDistance)
+            val btnLearn: Button? = cardView.findViewById(R.id.btnLearnExercise)
             val btnStart: Button = cardView.findViewById(R.id.btnStartExercise)
 
             tvTitle.text = exercise.displayName
@@ -148,13 +182,27 @@ class MainActivity : AppCompatActivity() {
             tvMetricTarget.text = exercise.targetMetricTarget
             tvDistance.text = exercise.cameraDistance
 
+            cardView.setOnClickListener {
+                val intent = Intent(this, ExerciseDetailActivity::class.java).apply {
+                    putExtra(ExerciseDetailActivity.EXTRA_EXERCISE_ID, exercise.type.id)
+                }
+                startActivity(intent)
+            }
+
+            btnLearn?.setOnClickListener {
+                val intent = Intent(this, ExerciseDetailActivity::class.java).apply {
+                    putExtra(ExerciseDetailActivity.EXTRA_EXERCISE_ID, exercise.type.id)
+                }
+                startActivity(intent)
+            }
+
             when (exercise.status) {
                 ExerciseValidationStatus.PHYSICALLY_DEMONSTRATED -> {
                     tvBadge.text = "DEMONSTRATED"
                     tvBadge.setBackgroundResource(R.drawable.bg_badge_green)
                     tvBadge.setTextColor(android.graphics.Color.parseColor("#10B981"))
                     btnStart.isEnabled = true
-                    btnStart.text = "Start ${exercise.displayName}"
+                    btnStart.text = "Start Tracking"
                     btnStart.setOnClickListener {
                         val intent = Intent(this, ExercisePreparationActivity::class.java).apply {
                             putExtra(ExercisePreparationActivity.EXTRA_EXERCISE_ID, exercise.type.id)
@@ -167,7 +215,7 @@ class MainActivity : AppCompatActivity() {
                     tvBadge.setBackgroundResource(R.drawable.bg_badge_cyan)
                     tvBadge.setTextColor(android.graphics.Color.parseColor("#06B6D4"))
                     btnStart.isEnabled = true
-                    btnStart.text = "Start ${exercise.displayName}"
+                    btnStart.text = "Start Tracking"
                     btnStart.setOnClickListener {
                         val intent = Intent(this, ExercisePreparationActivity::class.java).apply {
                             putExtra(ExercisePreparationActivity.EXTRA_EXERCISE_ID, exercise.type.id)
@@ -203,6 +251,7 @@ class MainActivity : AppCompatActivity() {
     private fun initData() {
         val db = AppDatabase.getInstance(this)
         sessionRepository = SessionRepository(db.sessionDao(), db.repDao(), db.evidenceEventDao())
+        planRepository = com.kinexmed.data.repository.PlanRepository(db.exercisePlanDao())
 
         // Observe real Room database sessions reactively
         lifecycleScope.launch {
@@ -220,6 +269,26 @@ class MainActivity : AppCompatActivity() {
                     "All sessions synchronized"
                 } else {
                     "Ready for first session"
+                }
+
+                // Compute real consistency streak & weekly goal
+                val streak = com.kinexmed.domain.consistency.ConsistencyCalculator.calculateCurrentStreak(sessions)
+                val weeklyProgress = com.kinexmed.domain.consistency.ConsistencyCalculator.calculateWeeklyProgress(sessions, targetSessions = 5)
+
+                tvMainCurrentStreak.text = "$streak ${if (streak == 1) "Day" else "Days"}"
+                tvMainWeeklyGoal.text = "${weeklyProgress.completedSessions} / ${weeklyProgress.targetSessions}"
+            }
+        }
+
+        // Observe active exercise plan
+        lifecycleScope.launch {
+            planRepository.activePlan.collectLatest { activePlan ->
+                if (activePlan != null) {
+                    tvMainActivePlanTitle.text = activePlan.name
+                    tvMainActivePlanSubtitle.text = "Target: ${activePlan.frequencyPerWeek} sessions/wk (Active Routine)"
+                } else {
+                    tvMainActivePlanTitle.text = "Personalized Exercise Plan"
+                    tvMainActivePlanSubtitle.text = "Tap to configure your rehabilitation routine"
                 }
             }
         }

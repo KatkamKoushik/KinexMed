@@ -59,6 +59,57 @@ export interface HealthStatus {
   version: string;
 }
 
+export interface PlanExercise {
+  id?: string;
+  exercise_type: string;
+  target_sets: number;
+  target_reps: number;
+  order_index: number;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  description?: string;
+  is_active: boolean;
+  frequency_per_week: number;
+  created_at: string;
+  updated_at?: string;
+  exercises: PlanExercise[];
+}
+
+export interface SessionFeedback {
+  id: string;
+  session_id: string;
+  author: string;
+  message: string;
+  created_at: string;
+}
+
+export interface WeeklyReport {
+  report_type: string;
+  start_date: string;
+  completed_sessions: number;
+  target_sessions: number;
+  goal_met: boolean;
+  total_valid_reps: number;
+  total_attempted_reps: number;
+  adherence_ratio_percent: number;
+  total_duration_seconds: number;
+  exercise_distribution: Record<string, number>;
+}
+
+export interface MonthlyReport {
+  report_type: string;
+  month: string;
+  completed_sessions: number;
+  total_valid_reps: number;
+  total_attempted_reps: number;
+  adherence_ratio_percent: number;
+  total_therapy_hours: number;
+  exercise_distribution: Record<string, number>;
+}
+
 export type ClinicianView =
   | 'OVERVIEW'
   | 'SESSIONS'
@@ -66,4 +117,6 @@ export type ClinicianView =
   | 'REPS'
   | 'ROM'
   | 'EVIDENCE'
-  | 'HISTORY';
+  | 'HISTORY'
+  | 'PLANS'
+  | 'REPORTS';

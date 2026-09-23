@@ -83,6 +83,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
     private lateinit var tvCompletionDuration: TextView
     private lateinit var tvCompletionAvgRom: TextView
     private lateinit var tvCompletionSyncStatus: TextView
+    private lateinit var btnViewSummaryOverlay: Button
     private lateinit var btnStartNewSessionOverlay: Button
     private lateinit var btnViewHistoryOverlay: Button
     private lateinit var btnExitHomeOverlay: Button
@@ -209,6 +210,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         tvCompletionDuration = findViewById(R.id.tvCompletionDuration)
         tvCompletionAvgRom = findViewById(R.id.tvCompletionAvgRom)
         tvCompletionSyncStatus = findViewById(R.id.tvCompletionSyncStatus)
+        btnViewSummaryOverlay = findViewById(R.id.btnViewSummaryOverlay)
         btnStartNewSessionOverlay = findViewById(R.id.btnStartNewSessionOverlay)
         btnViewHistoryOverlay = findViewById(R.id.btnViewHistoryOverlay)
         btnExitHomeOverlay = findViewById(R.id.btnExitHomeOverlay)
@@ -232,6 +234,14 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
 
         btnCancelSession.setOnClickListener {
             confirmCancelSession()
+        }
+
+        btnViewSummaryOverlay.setOnClickListener {
+            val intent = Intent(this, SessionSummaryActivity::class.java).apply {
+                putExtra(SessionSummaryActivity.EXTRA_SESSION_ID, currentSessionId)
+            }
+            startActivity(intent)
+            finish()
         }
 
         btnStartNewSessionOverlay.setOnClickListener {

@@ -134,18 +134,21 @@ KinexMed/
 │   └── tests/               # Backend integration and endpoint tests
 │
 ├── docs/                    # Architecture, Traceability, and Validation Documentation
-│   ├── FINAL_AUDIT.md       # Engineering audit and reality reconciliation
-│   ├── PPT_REQUIREMENTS_TRACEABILITY.md # Master traceability matrix
+│   ├── FINAL_IMPLEMENTATION_AUDIT.md # Comprehensive engineering & reality audit
+│   ├── OFFICE_KIT_WORKFLOW.md   # iQOO Office Kit Phone-to-Laptop integration guide
+│   ├── PPT_CODEBASE_GAP_MATRIX.md # Forensic PPT ↔ Codebase gap matrix
+│   ├── PPT_REQUIREMENTS_TRACEABILITY.md # Master requirements traceability matrix
 │   └── VALIDATION.md        # Physical testing matrix and performance benchmarks
 │
 ├── web/                     # Clinician Dashboard Frontend (React + Vite)
 │   ├── src/
-│   │   ├── components/      # UI cards, badges, ROM charts, rep tables
-│   │   ├── services/        # Backend API client
-│   │   └── App.jsx          # Main clinician portal view
+│   │   ├── components/      # UI views (Overview, Sessions, Detail, Plans, Reports)
+│   │   ├── api/             # Backend REST API client
+│   │   └── App.tsx          # Main clinician portal view
 │   └── package.json
 └── .github/workflows/       # GitHub Actions CI workflow
     └── ci.yml
+
 ```
 
 ---
@@ -215,10 +218,10 @@ cd android
 Run the complete automated verification suite:
 
 ```bash
-# 1. Backend API & Kinematics Tests (37 tests)
+# 1. Backend API & Kinematics Tests (39 tests)
 python -m pytest backend/tests -v
 
-# 2. Android Domain & Registry Unit Tests (22 tests)
+# 2. Android Domain, Consistency & Report Unit Tests (28 tests)
 cd android
 ./gradlew testDebugUnitTest
 
@@ -226,6 +229,7 @@ cd android
 cd web
 pnpm build
 ```
+
 
 ---
 

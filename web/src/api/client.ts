@@ -55,3 +55,100 @@ export async function fetchSessionSummary(id: string): Promise<SessionNlSummary>
   }
   return res.json();
 }
+
+// Plan API functions
+export async function fetchPlans(activeOnly = false): Promise<import('../types/session').Plan[]> {
+  const url = `${API_BASE}/plans${activeOnly ? '?active_only=true' : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch plans: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function createPlan(plan: Partial<import('../types/session').Plan>): Promise<import('../types/session').Plan> {
+  const res = await fetch(`${API_BASE}/plans`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(plan),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to create plan: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function updatePlan(
+  planId: string,
+  plan: Partial<import('../types/session').Plan>
+): Promise<import('../types/session').Plan> {
+  const res = await fetch(`${API_BASE}/plans/${planId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(plan),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to update plan: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function deletePlan(planId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/plans/${planId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to delete plan: ${res.statusText}`);
+  }
+}
+
+// Clinician Feedback API functions
+export async function fetchSessionFeedback(sessionId: string): Promise<import('../types/session').SessionFeedback[]> {
+  const res = await fetch(`${API_BASE}/feedback/session/${sessionId}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch session feedback: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function submitFeedback(
+  sessionId: string,
+  author: string,
+  message: string
+): Promise<import('../types/session').SessionFeedback> {
+  const res = await fetch(`${API_BASE}/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id: sessionId, author, message }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to submit feedback: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Clinical Reports API functions
+export async function fetchWeeklyReport(targetSessions = 5): Promise<import('../types/session').WeeklyReport> {
+  const res = await fetch(`${API_BASE}/reports/weekly?target_sessions=${targetSessions}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch weekly report: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchMonthlyReport(): Promise<import('../types/session').MonthlyReport> {
+  const res = await fetch(`${API_BASE}/reports/monthly`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch monthly report: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchSessionReport(sessionId: string): Promise<Record<string, unknown>> {
+  const res = await fetch(`${API_BASE}/reports/session/${sessionId}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch session report: ${res.statusText}`);
+  }
+  return res.json();
+}
+

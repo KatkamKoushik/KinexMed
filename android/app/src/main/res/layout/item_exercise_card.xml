@@ -135,16 +135,38 @@
             </LinearLayout>
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btnStartExercise"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Start Exercise"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:backgroundTint="#06B6D4"
-            app:cornerRadius="12dp" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnLearnExercise"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="Learn Guide"
+                android:textAllCaps="false"
+                android:textColor="#E2E8F0"
+                android:textSize="13sp"
+                android:backgroundTint="#1E293B"
+                app:cornerRadius="12dp" />
+
+            <Button
+                android:id="@+id/btnStartExercise"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="Start Tracking"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:backgroundTint="#06B6D4"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

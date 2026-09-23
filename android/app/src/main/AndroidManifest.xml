@@ -61,6 +61,30 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Exercise Learning & Instructions Screen ("Learn" Stage) -->
+        <activity
+            android:name=".ui.ExerciseDetailActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
+        <!-- Weekly & Monthly Progress Screen -->
+        <activity
+            android:name=".ui.ProgressActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
+        <!-- Post-Session Summary & Review Screen -->
+        <activity
+            android:name=".ui.SessionSummaryActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
+        <!-- Personalized Exercise Plans Management -->
+        <activity
+            android:name=".ui.PlansActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+
     </application>
 
 </manifest>

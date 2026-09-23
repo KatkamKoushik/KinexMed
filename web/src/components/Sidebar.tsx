@@ -7,7 +7,9 @@ import {
   Activity,
   LineChart,
   ShieldCheck,
-  History
+  History,
+  ClipboardList,
+  FileCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,8 +32,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'REPS', label: 'Rep Analysis', icon: <Activity size={18} />, requiresSession: true },
     { id: 'ROM', label: 'ROM Visualization', icon: <LineChart size={18} /> },
     { id: 'EVIDENCE', label: 'Evidence Quality', icon: <ShieldCheck size={18} /> },
-    { id: 'HISTORY', label: 'Patient History', icon: <History size={18} /> }
+    { id: 'HISTORY', label: 'Patient History', icon: <History size={18} /> },
+    { id: 'PLANS', label: 'Exercise Plans', icon: <ClipboardList size={18} /> },
+    { id: 'REPORTS', label: 'Clinical Reports', icon: <FileCheck size={18} /> }
   ];
+
 
   return (
     <aside className="clinician-sidebar">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import type { SessionDetail, SessionSummary, SessionNlSummary } from '../types/session';
+import type { SessionDetail, SessionSummary, SessionNlSummary, SessionFeedback } from '../types/session';
 import { RomChart } from './RomChart';
-import { fetchSessionSummary } from '../api/client';
+import { fetchSessionSummary, fetchSessionFeedback, submitFeedback, fetchSessionReport } from '../api/client';
 import { Check, X, Clock, Target, Sparkles } from 'lucide-react';
 
 interface SessionDetailViewProps {
@@ -19,6 +19,12 @@ export const SessionDetailView: React.FC<SessionDetailViewProps> = ({
   const [nlSummary, setNlSummary] = useState<SessionNlSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState<boolean>(false);
 
+  // Clinician Feedback state
+  const [feedbacks, setFeedbacks] = useState<SessionFeedback[]>([]);
+  const [fbAuthor, setFbAuthor] = useState('Dr. Clinician');
+  const [fbMessage, setFbMessage] = useState('');
+  const [isSubmittingFb, setIsSubmittingFb] = useState(false);
+
   useEffect(() => {
     let isMounted = true;
     async function loadSummary() {
@@ -32,11 +38,39 @@ export const SessionDetailView: React.FC<SessionDetailViewProps> = ({
         if (isMounted) setLoadingSummary(false);
       }
     }
+
+    async function loadFeedback() {
+      try {
+        const fbData = await fetchSessionFeedback(session.id);
+        if (isMounted) setFeedbacks(fbData);
+      } catch (err) {
+        console.error('Error fetching feedback:', err);
+      }
+    }
+
     loadSummary();
+    loadFeedback();
     return () => {
       isMounted = false;
     };
   }, [session.id]);
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fbMessage.trim()) return;
+
+    try {
+      setIsSubmittingFb(true);
+      const newFb = await submitFeedback(session.id, fbAuthor.trim() || 'Clinician', fbMessage.trim());
+      setFeedbacks((prev) => [newFb, ...prev]);
+      setFbMessage('');
+    } catch (err) {
+      alert('Failed to save feedback: ' + err);
+    } finally {
+      setIsSubmittingFb(false);
+    }
+  };
+
 
   const formattedDate = new Date(session.created_at || session.started_at).toLocaleString(undefined, {
     weekday: 'short',
@@ -215,6 +249,84 @@ export const SessionDetailView: React.FC<SessionDetailViewProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Clinician Notes & Prescription Feedback Section */}
+      <div className="clinician-feedback-section" style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div>
+            <h4 style={{ fontSize: '1rem', color: '#F8FAFC', margin: 0 }}>
+              CLINICIAN CONSULTATION & SESSION FEEDBACK
+            </h4>
+            <p style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: '4px' }}>
+              Add clinical observations, ROM guidance, or modifications to the patient's record.
+            </p>
+          </div>
+          <button
+            className="btn-text-action"
+            onClick={async () => {
+              try {
+                const rep = await fetchSessionReport(session.id);
+                const text = `KINEXMED SESSION REPORT\nSession: ${rep.exercise_name}\nValid: ${rep.valid_reps}/${rep.total_reps} (${rep.adherence_ratio_percent}%)\nAvg Peak ROM: ${rep.avg_peak_angle}°\nClinical Guardrail: ${rep.clinical_guardrail}`;
+                navigator.clipboard.writeText(text);
+                alert('Session report copied to clipboard');
+              } catch (e) {
+                alert('Failed to copy session report: ' + e);
+              }
+            }}
+          >
+            Copy Clinical Report Summary
+          </button>
+        </div>
+
+        {/* Existing Feedbacks */}
+        <div className="feedback-list" style={{ marginBottom: '1.25rem' }}>
+          {feedbacks.length === 0 ? (
+            <div style={{ fontSize: '0.85rem', color: '#64748B', fontStyle: 'italic', padding: '0.5rem 0' }}>
+              No clinician feedback recorded for this session yet.
+            </div>
+          ) : (
+            feedbacks.map((fb) => (
+              <div key={fb.id} className="feedback-bubble">
+                <div className="feedback-header">
+                  <span className="feedback-author">{fb.author}</span>
+                  <span className="feedback-time">{new Date(fb.created_at).toLocaleString()}</span>
+                </div>
+                <div className="feedback-message">{fb.message}</div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* New Feedback Form */}
+        <form onSubmit={handleSubmitFeedback} className="feedback-form">
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem' }}>
+            <input
+              type="text"
+              placeholder="Clinician / Therapist Name"
+              value={fbAuthor}
+              onChange={(e) => setFbAuthor(e.target.value)}
+              style={{ width: '220px' }}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Enter clinical assessment or exercise guidance note..."
+              value={fbMessage}
+              onChange={(e) => setFbMessage(e.target.value)}
+              style={{ flex: 1 }}
+              required
+            />
+            <button
+              type="submit"
+              className="btn-primary-action"
+              disabled={isSubmittingFb || !fbMessage.trim()}
+            >
+              {isSubmittingFb ? 'Saving...' : 'Add Note'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
+

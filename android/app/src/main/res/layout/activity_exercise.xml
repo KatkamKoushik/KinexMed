@@ -310,17 +310,30 @@
 
                 <!-- Action Buttons -->
                 <Button
-                    android:id="@+id/btnStartNewSessionOverlay"
+                    android:id="@+id/btnViewSummaryOverlay"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:layout_marginTop="18dp"
-                    android:text="Start New Session"
+                    android:layout_marginTop="16dp"
+                    android:text="View Session Summary &amp; Share"
                     android:textAllCaps="false"
                     android:backgroundTint="#06B6D4"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     app:cornerRadius="12dp" />
+
+                <Button
+                    android:id="@+id/btnStartNewSessionOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Start New Session"
+                    android:textAllCaps="false"
+                    android:backgroundTint="#161B26"
+                    android:textColor="#38BDF8"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="10dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

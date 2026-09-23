@@ -1,6 +1,37 @@
 # Changelog — KinexMed Multi-Exercise Platform
 
+## [v1.2.0] - 2026-09-23
+
+### PPT ↔ Codebase Gap Closure & Platform Unification
+- **Prescribed Exercise Plans:**
+  - Android: `ExercisePlanEntity`, `PlanExerciseEntity`, `ExercisePlanDao`, `PlanRepository`, and `PlansActivity` allowing patients and clinicians to configure custom rehabilitation regimens (target sets, reps, and weekly frequency).
+  - Backend: RESTful CRUD endpoints at `/plans` with SQLAlchemy models and Pydantic schemas.
+  - Web: `PlansView` with interactive prescription builder and active status toggling.
+- **Consistency & Streak System:**
+  - `ConsistencyCalculator.kt` pure functional engine aggregating real SQLite session timestamps into consecutive workout streaks, longest streak, weekly goal adherence %, and exercise volume.
+  - Home screen active streak and weekly goal completion card with zero mock data.
+- **Weekly & Monthly Patient Progress:**
+  - `ProgressActivity.kt` providing interactive WEEK and MONTH analytical views with total volume, valid vs attempted ratio, and rejection cause breakdown.
+- **Comprehensive Session Summary & Scoring:**
+  - `SessionSummaryActivity.kt` delivering transparent form scoring (validity ratio + depth achievement), duration metrics, and common form pitfalls.
+- **Caregiver Share Sheet Integration:**
+  - `CaregiverShareHelper.kt` generating privacy-safe clinical text summaries and launching native Android `Intent.ACTION_SEND` (zero raw video exposure).
+- **Automated Clinical Adherence Reports:**
+  - Backend `/reports/session/{id}`, `/reports/weekly`, and `/reports/monthly` endpoints computing structured adherence metrics.
+  - Web `ReportsView` component with interactive KPI cards, exercise distribution, and formatted export to clipboard and print.
+- **Clinician Feedback & Notes:**
+  - Backend `/feedback` endpoints persisting consultation notes by session ID.
+  - Interactive feedback submission form and chronological note thread in `SessionDetailView.tsx`.
+- **iQOO Office Kit Phone-to-Laptop Workflow:**
+  - Created `docs/OFFICE_KIT_WORKFLOW.md` detailing wireless screen casting, ADB reverse port forwarding, and privacy boundaries.
+- **Engineering Hygiene & Architecture Cleanup:**
+  - Removed unused Retrofit, Gson, and logging-interceptor dependencies from `android/app/build.gradle.kts`.
+  - Removed orphaned `SessionList.tsx` from `web/src/components/`.
+  - Upgraded Room SQLite database to version 4 with schema migrations.
+  - Zero mock data and zero emojis strictly enforced across the entire codebase.
+
 ## [v1.1.0] - 2026-09-23
+
 
 ### Multi-Exercise Expansion (15 Exercises across 4 Categories)
 - Added `ExerciseCategory` enum: `LOWER_BODY`, `UPPER_BODY`, `FUNCTIONAL_MOBILITY`, `BALANCE`.

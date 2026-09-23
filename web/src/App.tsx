@@ -11,7 +11,10 @@ import { EvidenceQualityView } from './components/EvidenceQualityView';
 import { HistoryView } from './components/HistoryView';
 import { RomChart } from './components/RomChart';
 import { EmptyState } from './components/EmptyState';
+import { PlansView } from './components/PlansView';
+import { ReportsView } from './components/ReportsView';
 import './App.css';
+
 
 export function App() {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -157,6 +160,14 @@ export function App() {
                   onSelectSession={(id) => handleSelectSession(id, 'DETAIL')}
                 />
               )}
+
+              {currentView === 'PLANS' && (
+                <PlansView />
+              )}
+
+              {currentView === 'REPORTS' && (
+                <ReportsView />
+              )}
             </>
           )}
         </main>
@@ -164,5 +175,6 @@ export function App() {
     </div>
   );
 }
+
 
 export default App;
