@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="6dp">
+
+    <!-- USER Message Row -->
+    <LinearLayout
+        android:id="@+id/layoutUserMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:orientation="vertical"
+        android:maxWidth="300dp"
+        android:background="@drawable/bg_chat_user_bubble"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvUserMessageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvUserTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:textColor="#E0F2FE"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- ASSISTANT Message Row -->
+    <LinearLayout
+        android:id="@+id/layoutAssistantMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_chat_assistant_bubble"
+            android:padding="14dp"
+            android:maxWidth="340dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="REHAB ASSISTANT"
+                android:textColor="#06B6D4"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvAssistantMessageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#F1F5F9"
+                android:textSize="14sp"
+                android:lineSpacingExtra="3dp" />
+
+            <TextView
+                android:id="@+id/tvAssistantTimestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="#64748B"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- Container for Structured Evidence Cards -->
+        <LinearLayout
+            android:id="@+id/llEvidenceCardsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>
