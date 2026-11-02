@@ -26,8 +26,14 @@ class HttpLocalRehabLlmClient(
     override suspend fun query(prompt: String, retrievedSnippet: String): String? = withContext(Dispatchers.IO) {
         if (endpointUrl.isBlank()) return@withContext null
 
+        // Security: Sanitize patient prompt against prompt injection and control characters
+        val sanitizedPrompt = prompt.take(400)
+            .replace(Regex("<\\|.*?\\|>"), "")
+            .replace(Regex("(?i)(^|\\n)\\s*(system|assistant|user)\\s*:\\s*"), "$1")
+            .trim()
+
         val systemPrompt = "You are KinexMed Personal Rehabilitation Assistant. You answer patient questions strictly and solely using the provided retrieved telemetry. You must NEVER invent measurements, NEVER diagnose conditions, NEVER prescribe medical treatment, and NEVER claim clinical cure. Keep answers concise, empathetic, and factual."
-        val userContent = "Retrieved KinexMed Session Telemetry:\n$retrievedSnippet\n\nPatient Question: $prompt"
+        val userContent = "<evidence_telemetry>\n$retrievedSnippet\n</evidence_telemetry>\n\n<patient_query>\n$sanitizedPrompt\n</patient_query>"
 
         val jsonBody = JSONObject().apply {
             put("model", "llama3.2")

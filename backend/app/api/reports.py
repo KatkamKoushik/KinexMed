@@ -3,12 +3,13 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
+from backend.app.core.security import verify_api_key
 from backend.app.models.session import SessionModel, RepModel
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 @router.get("/session/{session_id}", summary="Generate structured clinical adherence report for a single session")
-def get_session_report(session_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def get_session_report(session_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)) -> Dict[str, Any]:
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
     if not session:
         raise HTTPException(
@@ -48,7 +49,8 @@ def get_session_report(session_id: str, db: Session = Depends(get_db)) -> Dict[s
 @router.get("/weekly", summary="Generate aggregated clinical adherence report for the current week")
 def get_weekly_report(
     target_sessions: int = Query(5, ge=1, le=14),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
 ) -> Dict[str, Any]:
     now = datetime.now(timezone.utc)
     # Start of week (Monday)

@@ -1,5 +1,9 @@
 # KinexMed Platform Documentation Wiki
 
+[Home](Home.md) · [System Architecture](System-Architecture-and-Pipeline.md) · [Biomechanical Geometry](Biomechanical-Geometry-and-FSM.md) · [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) · [Local Rehab Memory](Local-Rehab-Memory-and-Assistant.md) · [Clinician Portal & REST API](Clinician-Portal-and-Backend-API.md) · [Physical Validation & Testing](Physical-Validation-and-Troubleshooting.md)
+
+---
+
 Welcome to the official technical wiki for **KinexMed**, an edge-native physical rehabilitation platform enabling real-time biomechanical movement analysis, local-first conversational rehabilitation memory, and structured clinician oversight.
 
 ---
@@ -15,6 +19,8 @@ mindmap
   root((KinexMed Platform))
     On-Device Movement Engine
       MediaPipe Pose Landmarker
+      CameraManager Hardware Decoupling
+      PoseAnalysisController
       One-Euro Temporal Filter
       Euclidean Joint Geometry
       Deterministic Multi-Exercise FSMs
@@ -33,10 +39,11 @@ mindmap
       Structured Evidence Cards
     Clinician Ecosystem
       FastAPI Asynchronous Services
+      Alembic Database Migrations
+      API Key Security & Rate Limits
       Zero-Mock React Clinician Portal
       Prescribed Plan Builder
       Chronological Feedback Notes Loop
-      Phone-to-Laptop Screen Bridge
 ```
 
 ---
@@ -47,7 +54,9 @@ mindmap
 2. **Privacy by Design (Zero Video Upload):** Camera frames are analyzed in transient RAM buffers and released immediately. No continuous video or photos are saved or uploaded to remote servers. Only lightweight mathematical telemetry (JSON) leaves the device.
 3. **Deterministic Movement Analysis:** Artificial intelligence is used exclusively for spatial landmark estimation and natural language explanation. Physical movement counting, phase transitions, and form validation are governed strictly by deterministic geometry and finite state machines to eliminate hallucinated rep counts.
 4. **Offline Autonomy:** Patients can perform workouts completely offline. All session data, individual repetitions, and evidence events persist in local Room SQLite and automatically synchronize when an authorized clinician network is detected.
-5. **Non-Diagnostic Safety Boundaries:** KinexMed is an assistive observation and adherence tool between clinical consultations. It does not diagnose medical conditions or independently prescribe pharmacological treatments.
+5. **Database Versioning & Migration Safety:** Backend database schemas are fully version-controlled using Alembic migrations with automatic lifespan synchronization and legacy schema stamping, replacing unversioned automatic table generation.
+6. **Decoupled Architecture & Layered Testing:** Android hardware lifecycle is decoupled into dedicated camera and kinematics controllers. Full multi-platform test coverage spans 50 backend/Playwright E2E tests, 32 Android unit tests, and 5 React Vitest component tests.
+7. **Non-Diagnostic Safety Boundaries:** KinexMed is an assistive observation and adherence tool between clinical consultations. It does not diagnose medical conditions or independently prescribe pharmacological treatments.
 
 ---
 
@@ -55,9 +64,13 @@ mindmap
 
 | Topic | Document | Key Technical Contents |
 | :--- | :--- | :--- |
-| **System Architecture & Pipeline** | [System Architecture](System-Architecture-and-Pipeline.md) | 10-stage processing pipeline, latency instrumentation, multi-endpoint sync resolution |
+| **System Architecture & Pipeline** | [System Architecture](System-Architecture-and-Pipeline.md) | 10-stage processing pipeline, CameraManager, PoseAnalysisController, latency instrumentation |
 | **Biomechanical Geometry & FSM** | [Biomechanical Geometry](Biomechanical-Geometry-and-FSM.md) | 15 exercise definitions, 3D Euclidean angles, side-preference hysteresis, state transitions |
 | **Mobile UX & Ergonomics** | [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) | Thumb-zone reachability, 48dp touch targets, OLED dark theme tokens, spring physics |
 | **Local Rehab Memory & Assistant** | [Local Rehab Memory](Local-Rehab-Memory-and-Assistant.md) | Room SQLite retrieval, deterministic parser, SQL aggregation, structured evidence cards |
-| **Clinician Portal & REST API** | [Clinician Portal & API](Clinician-Portal-and-Backend-API.md) | FastAPI endpoints, SQLAlchemy schemas, React dashboard, plan builder, feedback loops |
-| **Physical Validation & Testing** | [Physical Validation Guide](Physical-Validation-and-Troubleshooting.md) | Physical test runbooks, camera distance, lighting, squat debugging, test automation |
+| **Clinician Portal & REST API** | [Clinician Portal & API](Clinician-Portal-and-Backend-API.md) | FastAPI endpoints, Alembic migrations, API key auth, React dashboard, Vitest component tests |
+| **Physical Validation & Testing** | [Physical Validation Guide](Physical-Validation-and-Troubleshooting.md) | Physical test runbooks, camera distance, lighting, squat debugging, test automation matrix |
+
+---
+
+**Navigation:** [Home](Home.md) | [Architecture](System-Architecture-and-Pipeline.md) | [Biomechanics & FSM](Biomechanical-Geometry-and-FSM.md) | [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) | [Rehab Memory](Local-Rehab-Memory-and-Assistant.md) | [Clinician API & Portal](Clinician-Portal-and-Backend-API.md) | [Physical Validation](Physical-Validation-and-Troubleshooting.md)

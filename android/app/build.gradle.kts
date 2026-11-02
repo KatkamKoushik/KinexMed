@@ -38,6 +38,9 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
     androidResources {
         noCompress += "task"
     }

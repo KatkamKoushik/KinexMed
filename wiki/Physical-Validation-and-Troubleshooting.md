@@ -1,5 +1,9 @@
 # Physical Validation & Troubleshooting Guide
 
+[Home](Home.md) · [System Architecture](System-Architecture-and-Pipeline.md) · [Biomechanical Geometry](Biomechanical-Geometry-and-FSM.md) · [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) · [Local Rehab Memory](Local-Rehab-Memory-and-Assistant.md) · [Clinician Portal & REST API](Clinician-Portal-and-Backend-API.md) · [Physical Validation & Testing](Physical-Validation-and-Troubleshooting.md)
+
+---
+
 This guide establishes the physical test runbooks, camera positioning criteria, and debugging protocols for KinexMed on physical Android hardware.
 
 ---
@@ -77,15 +81,19 @@ adb logcat -s KinexMed EvidenceEngine ExerciseStateMachine SyncManager
 
 ## 4. Automated Verification Commands
 
-Before deploying or physically demonstrating, verify the complete automated test suite:
+Before deploying or physically demonstrating, verify the complete automated test suite across all three platform tiers:
 
 ```bash
-# 1. Backend REST & Kinematics Tests (39 passing tests)
+# 1. Backend REST, Kinematics, Alembic Migration & E2E Tests (50 passing tests)
 d:\KinexMed\backend\.venv\Scripts\python.exe -m pytest backend/tests -v
 
-# 2. Android Unit & Consistency Tests (28 passing tests)
-cmd /c "set JAVA_HOME=D:\KinexMed\android\.jdk17\jdk-17.0.12+7&& cd /d D:\KinexMed\android&& gradlew.bat testDebugUnitTest"
+# 2. Android Unit, Geometry & PoseAnalysisController Tests (32 passing tests)
+cd android && ./gradlew testDebugUnitTest
 
-# 3. Web Dashboard Production Build
-cd web && npm run build
+# 3. Web Dashboard Vitest Component Tests & Production Build (5 passing tests)
+cd web && npm test && npm run build
 ```
+
+---
+
+**Navigation:** [Home](Home.md) | [Architecture](System-Architecture-and-Pipeline.md) | [Biomechanics & FSM](Biomechanical-Geometry-and-FSM.md) | [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) | [Rehab Memory](Local-Rehab-Memory-and-Assistant.md) | [Clinician API & Portal](Clinician-Portal-and-Backend-API.md) | [Physical Validation](Physical-Validation-and-Troubleshooting.md)

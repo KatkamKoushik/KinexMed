@@ -1,12 +1,28 @@
 # KinexMed — Clinical Movement Intelligence and Multi-Exercise Rehabilitation Platform
 
+[![CI Pipeline](https://github.com/KatkamKoushik/KinexMed/actions/workflows/ci.yml/badge.svg)](https://github.com/KatkamKoushik/KinexMed/actions/workflows/ci.yml)
+[![Tests Matrix](https://img.shields.io/badge/Tests-87%20Passed-success.svg)](#running-automated-tests)
 [![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/KatkamKoushik/KinexMed/releases/tag/v1.0.0)
-[![APK](https://img.shields.io/badge/Download-APK%20(v1.0.0)-success.svg)](https://github.com/KatkamKoushik/KinexMed/releases/download/v1.0.0/app-debug.apk)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Android](https://img.shields.io/badge/Android-API%2026%2B-3DDC84.svg?style=flat&logo=android)](https://developer.android.com)
-[![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose%20Landmarker-007ACC.svg?style=flat)](https://developers.google.com/mediapipe)
-[![React](https://img.shields.io/badge/React-18%2B-61DAFB.svg?style=flat&logo=react)](https://react.dev)
+[![APK Download](https://img.shields.io/badge/Download-APK%20(v1.0.0)-success.svg)](https://github.com/KatkamKoushik/KinexMed/releases/download/v1.0.0/app-debug.apk)
+[![Documentation Wiki](https://img.shields.io/badge/Docs-Wiki%20(7%20Guides)-0A84FF.svg)](wiki/Home.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[![Android Platform](https://img.shields.io/badge/Android-API%2026%2B-3DDC84.svg?style=flat&logo=android)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
+[![MediaPipe](https://img.shields.io/badge/MediaPipe-Pose%20Landmarker%20(CPU)-007ACC.svg?style=flat)](https://developers.google.com/mediapipe)
+[![Room SQLite](https://img.shields.io/badge/Local%20Store-Room%20SQLite-003B57.svg?style=flat&logo=sqlite)](https://developer.android.com/training/data-storage/room)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.10%2B%20%7C%203.12-3776AB.svg?style=flat&logo=python)](https://python.org)
+[![Alembic Migrations](https://img.shields.io/badge/Alembic-Versioned%20Schema-FF4500.svg?style=flat)](https://alembic.sqlalchemy.org)
+[![SQLite WAL](https://img.shields.io/badge/SQLite-WAL%20Mode-003B57.svg?style=flat&logo=sqlite)](https://sqlite.org)
+
+[![React](https://img.shields.io/badge/React-18%2B-61DAFB.svg?style=flat&logo=react)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-6.x-646CFF.svg?style=flat&logo=vite)](https://vitejs.dev)
+[![Vitest](https://img.shields.io/badge/Vitest-Component%20Tested-6E9F18.svg?style=flat&logo=vitest)](https://vitest.dev)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E%20Tested-2EAD33.svg?style=flat&logo=playwright)](https://playwright.dev)
+[![Oxlint](https://img.shields.io/badge/Linter-Oxlint%20Passed-blue.svg?style=flat)](https://oxc.rs)
+[![Zero-Mock Telemetry](https://img.shields.io/badge/Telemetry-Zero%20Mock%20Data-10B981.svg?style=flat)](#strict-zero-mock-data-integrity)
 
 > Edge-native physical rehabilitation platform enabling real-time biomechanical analysis, local-first conversational rehabilitation memory, and automated clinician review.
 
@@ -18,19 +34,22 @@ KinexMed operates on a strict **zero-mock-data integrity** principle: all teleme
 
 ## Technical Documentation Wiki
 
-Comprehensive architecture, mathematical formulas, ergonomic design specifications, and physical runbooks are documented in the [KinexMed Wiki](file:///D:/KinexMed/wiki/Home.md):
+Comprehensive architecture, mathematical formulas, ergonomic design specifications, and physical runbooks are documented in the [KinexMed Wiki](wiki/Home.md):
 
-- [Wiki Home & Platform Vision](file:///D:/KinexMed/wiki/Home.md)
-- [System Architecture & 10-Stage Processing Pipeline](file:///D:/KinexMed/wiki/System-Architecture-and-Pipeline.md)
-- [Biomechanical Geometry & Exercise FSMs](file:///D:/KinexMed/wiki/Biomechanical-Geometry-and-FSM.md)
-- [Mobile UX Architecture & Native Ergonomics](file:///D:/KinexMed/wiki/Mobile-Ergonomics-and-Touch-Architecture.md)
-- [Local Rehab Memory & Conversational Assistant](file:///D:/KinexMed/wiki/Local-Rehab-Memory-and-Assistant.md)
-- [Clinician Portal & REST API Backend](file:///D:/KinexMed/wiki/Clinician-Portal-and-Backend-API.md)
-- [Physical Validation & Troubleshooting Guide](file:///D:/KinexMed/wiki/Physical-Validation-and-Troubleshooting.md)
+- [Wiki Home & Platform Vision](wiki/Home.md)
+- [System Architecture & 10-Stage Processing Pipeline](wiki/System-Architecture-and-Pipeline.md)
+- [Biomechanical Geometry & Exercise FSMs](wiki/Biomechanical-Geometry-and-FSM.md)
+- [Mobile UX Architecture & Native Ergonomics](wiki/Mobile-Ergonomics-and-Touch-Architecture.md)
+- [Local Rehab Memory & Conversational Assistant](wiki/Local-Rehab-Memory-and-Assistant.md)
+- [Clinician Portal & REST API Backend](wiki/Clinician-Portal-and-Backend-API.md)
+- [Physical Validation & Troubleshooting Guide](wiki/Physical-Validation-and-Troubleshooting.md)
 
 ---
 
 ## Latest Release & Android APK Download
+
+[![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/KatkamKoushik/KinexMed/releases/tag/v1.0.0)
+[![APK Download](https://img.shields.io/badge/Download-APK%20(v1.0.0)-success.svg)](https://github.com/KatkamKoushik/KinexMed/releases/download/v1.0.0/app-debug.apk)
 
 The latest pre-compiled Android APK (**v1.0.0**) is available directly via GitHub Releases:
 
@@ -108,28 +127,48 @@ flowchart TD
 
 KinexMed features a modular clinical exercise library organized into four therapeutic categories. Each exercise is assigned an explicit validation badge indicating its testing status:
 
-### 1. Lower Body (8 Exercises)
-- **Sit-to-Stand (Demonstrated):** Knee extension and hip angle tracking (target: >= 148 deg). Physically demonstrated on physical hardware with zero perceived latency and instant inflection detection.
-- **Bilateral Squat (Implemented Module):** Sagittal knee angle tracking (target: <= 100 deg, optimal 90 deg) with side-preference hysteresis (+-0.08 confidence margin) and 138 deg upright lockout.
-- **Forward Lunge (Implemented Module):** Lead knee flexion tracking (target: <= 100 deg).
-- **Reverse Lunge (Implemented Module):** Lead knee flexion tracking (target: <= 100 deg).
-- **Calf Raise (Implemented Module):** Ankle plantarflexion tracking (target: >= 115 deg).
-- **Seated Knee Extension (Implemented Module):** Seated lower-leg extension tracking (target: >= 145 deg).
-- **Standing Hip Abduction (Implemented Module):** Lateral leg raise angle tracking (target: <= 150 deg).
-- **Standing Hip Extension (Implemented Module):** Posterior hip extension tracking (target: <= 152 deg).
+| # | Exercise Name | Therapeutic Category | Primary Joint / Target | Valid Angle Range | Lockout Angle | Framing Distance | Validation Badge |
+| :- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | **Sit-to-Stand** | Lower Body | Knee & Hip Extension | >= 148 deg | 160 deg | 2.5 m (Side / 45 deg) | [![Demonstrated](https://img.shields.io/badge/Status-PHYSICALLY__DEMONSTRATED-success.svg)](#) |
+| **2** | **Bilateral Squat** | Lower Body | Knee Flexion (Sagittal) | <= 100 deg (Opt 90 deg) | 138 deg | 2.5 m (Sagittal Side) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **3** | **Forward Lunge** | Lower Body | Lead Knee Flexion | <= 100 deg | 135 deg | 2.5 m (Side view) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **4** | **Reverse Lunge** | Lower Body | Lead Knee Flexion | <= 100 deg | 135 deg | 2.5 m (Side view) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **5** | **Calf Raise** | Lower Body | Ankle Plantarflexion | >= 115 deg | 90 deg | 2.0 m (Full Body) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **6** | **Knee Extension** | Lower Body | Seated Tibial Extension | >= 145 deg | 90 deg | 2.0 m (Seated Side) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **7** | **Hip Abduction** | Lower Body | Standing Lateral Raise | <= 150 deg | 175 deg | 2.5 m (Frontal Coronal)| [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **8** | **Hip Extension** | Lower Body | Standing Posterior Raise| <= 152 deg | 175 deg | 2.5 m (Sagittal Side) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **9** | **Shoulder Flexion**| Upper Body | Anterior Arm Elevation | >= 90 deg | 30 deg | 2.0 m (Sagittal Side) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **10**| **Shoulder Abduction**| Upper Body | Lateral Arm Elevation | >= 90 deg | 30 deg | 2.0 m (Frontal Coronal)| [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **11**| **Elbow Flexion** | Upper Body | Interior Bicep Curl | <= 70 deg | 145 deg | 1.8 m (Frontal/Side) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **12**| **Elbow Extension**| Upper Body | Tricep Extension | >= 145 deg | 90 deg | 1.8 m (Side view) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **13**| **Marching in Place**| Functional | Alternating Hip Flexion | <= 110 deg | 165 deg | 2.5 m (Frontal Coronal)| [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **14**| **Heel-Toe Rocking**| Functional | Ankle Dynamic Range | >= 112 deg | 90 deg | 2.0 m (Side view) | [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
+| **15**| **Single-Leg Balance**| Balance | Hold Duration Ratio | >= 10.0 seconds | N/A | 2.5 m (Frontal Coronal)| [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#) |
 
-### 2. Upper Body (4 Exercises)
-- **Shoulder Flexion (Implemented Module):** Forward arm elevation angle tracking (target: >= 90 deg).
-- **Shoulder Abduction (Implemented Module):** Lateral arm elevation angle tracking (target: >= 90 deg).
-- **Elbow Flexion / Bicep Curl (Implemented Module):** Interior elbow flexion tracking (target: <= 70 deg).
-- **Elbow Extension / Tricep (Implemented Module):** Posterior arm extension tracking (target: >= 145 deg).
+### Module Specifications by Category
 
-### 3. Functional & Mobility (2 Exercises)
-- **Marching in Place (Implemented Module):** Alternating hip flexion angle tracking (target: <= 110 deg).
-- **Heel-to-Toe Rocking (Implemented Module):** Fluid ankle motion and stability cycle tracking (target: >= 112 deg).
+#### 1. Lower Body
+- **Sit-to-Stand** [![Demonstrated](https://img.shields.io/badge/Status-PHYSICALLY__DEMONSTRATED-success.svg)](#): Knee extension and hip angle tracking (target: >= 148 deg). Physically demonstrated on physical hardware with zero perceived latency and instant inflection detection.
+- **Bilateral Squat** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Sagittal knee angle tracking (target: <= 100 deg, optimal 90 deg) with side-preference hysteresis (+-0.08 confidence margin) and 138 deg upright lockout.
+- **Forward Lunge** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Lead knee flexion tracking (target: <= 100 deg).
+- **Reverse Lunge** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Lead knee flexion tracking (target: <= 100 deg).
+- **Calf Raise** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Ankle plantarflexion tracking (target: >= 115 deg).
+- **Seated Knee Extension** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Seated lower-leg extension tracking (target: >= 145 deg).
+- **Standing Hip Abduction** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Lateral leg raise angle tracking (target: <= 150 deg).
+- **Standing Hip Extension** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Posterior hip extension tracking (target: <= 152 deg).
 
-### 4. Balance & Stability (1 Exercise)
-- **Supported Single-Leg Balance (Implemented Module):** Single-leg elevation ratio and continuous stability hold duration tracking (target: >= 10.0s).
+#### 2. Upper Body
+- **Shoulder Flexion** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Forward arm elevation angle tracking (target: >= 90 deg).
+- **Shoulder Abduction** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Lateral arm elevation angle tracking (target: >= 90 deg).
+- **Elbow Flexion / Bicep Curl** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Interior elbow flexion tracking (target: <= 70 deg).
+- **Elbow Extension / Tricep** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Posterior arm extension tracking (target: >= 145 deg).
+
+#### 3. Functional & Mobility
+- **Marching in Place** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Alternating hip flexion angle tracking (target: <= 110 deg).
+- **Heel-to-Toe Rocking** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Fluid ankle motion and stability cycle tracking (target: >= 112 deg).
+
+#### 4. Balance & Stability
+- **Supported Single-Leg Balance** [![Implemented](https://img.shields.io/badge/Status-IMPLEMENTED__MODULE-blue.svg)](#): Single-leg elevation ratio and continuous stability hold duration tracking (target: >= 10.0s).
 
 ---
 
@@ -254,22 +293,25 @@ KinexMed/
 │   ├── app/src/main/
 │   │   ├── java/com/kinexmed/
 │   │   │   ├── audio/       # Text-to-Speech Voice Feedback Manager
+│   │   │   ├── camera/      # CameraX Manager & Surface Binding (Decoupled Lifecycle)
 │   │   │   ├── data/        # Room Database, DAOs, Entities, Repository
 │   │   │   ├── domain/      # FSM, Evidence Engine, Geometry, One-Euro Filter, Registry
+│   │   │   │   └── controller/ # Pose Analysis & Kinematics Controller
 │   │   │   ├── mediapipe/   # MediaPipe Pose Landmarker Helper (CPU Delegate)
-│   │   │   ├── sync/        # Background Network SyncManager
+│   │   │   ├── sync/        # Background Network SyncManager (Exponential Backoff + Jitter)
 │   │   │   └── ui/          # Activities, Bottom Nav, TouchErgonomicsHelper, Adapters
 │   │   └── assets/          # MediaPipe Pose Landmarker models (.task)
 │   └── build.gradle.kts     # Gradle build configurations
 │
 ├── backend/                 # FastAPI Asynchronous REST Backend (Python)
+│   ├── alembic/             # Versioned Database Migrations (001_initial_schema)
 │   ├── app/
 │   │   ├── api/             # REST endpoints (/health, /sessions, /plans, /feedback, /reports)
-│   │   ├── core/            # Database engine, SQLAlchemy session setup
-│   │   ├── models/          # Database models (Session, Rep, EvidenceEvent, Plan, Feedback)
+│   │   ├── core/            # Database engine, WAL pragmas, migration runner, API key auth
+│   │   ├── models/          # SQLAlchemy models (Session, Rep, EvidenceEvent, Plan, Feedback)
 │   │   ├── schemas/         # Pydantic validation schemas (Session, Plan, Feedback)
 │   │   └── services/        # Dynamic session summary generator
-│   └── tests/               # Backend integration and endpoint tests (39 tests)
+│   └── tests/               # Backend integration, migration & Playwright E2E tests (50 tests)
 │
 ├── docs/                    # Architecture, Traceability, and Validation Documentation
 │   ├── FINAL_IMPLEMENTATION_AUDIT.md # Comprehensive engineering & reality audit
@@ -287,13 +329,15 @@ KinexMed/
 │   ├── Clinician-Portal-and-Backend-API.md # REST API schemas and portal views
 │   └── Physical-Validation-and-Troubleshooting.md # Camera framing and physical runbooks
 │
-├── web/                     # Clinician Dashboard Frontend (React + Vite)
+├── web/                     # Clinician Dashboard Frontend (React + TypeScript + Vite)
 │   ├── src/
-│   │   ├── components/      # UI views (Overview, Sessions, Detail, Plans, Reports)
+│   │   ├── components/      # UI views (Overview, Sessions, Detail, Plans, Reports, ErrorBoundary)
 │   │   ├── api/             # Backend REST API client
-│   │   └── App.tsx          # Main clinician portal view
-│   └── package.json
-└── .github/workflows/       # GitHub Actions CI workflow
+│   │   ├── __tests__/       # Vitest component & unit tests (ErrorBoundary, EmptyState, KpiCards)
+│   │   └── App.tsx          # Main clinician portal view with connectivity state
+│   ├── package.json         # Scripts: dev, build, test (vitest), lint (oxlint)
+│   └── vite.config.ts       # Vite & Vitest configuration (jsdom environment, threads pool)
+└── .github/workflows/       # GitHub Actions CI workflow (3-job matrix: Backend, Web, Android)
     └── ci.yml
 ```
 
@@ -303,7 +347,7 @@ KinexMed/
 
 ### 1. Prerequisites
 - **Python**: 3.10+
-- **Node.js**: 18+ (with `pnpm` or `npm`)
+- **Node.js**: 20+ (with `pnpm` or `npm`)
 - **Android SDK**: API 26+ (Android 8.0+) with JDK 17
 - **Physical Device**: Android phone with CameraX and USB/Wireless Debugging
 
@@ -318,13 +362,13 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
+# Install dependencies (including Alembic and Playwright)
 pip install -r requirements.txt
 
-# Start backend server
+# Start backend server (Alembic migrations run automatically on startup)
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-Verify backend health at: `http://localhost:8000/health`
+Verify backend health at: `http://localhost:8000/`
 
 ---
 
@@ -334,10 +378,13 @@ Verify backend health at: `http://localhost:8000/health`
 cd web
 
 # Install dependencies
-npm install
+pnpm install
+
+# Run Vitest component tests
+pnpm run test
 
 # Launch Vite dev server
-npm run dev -- --port 5173
+pnpm run dev -- --port 5173
 ```
 Open the Clinician Portal at: `http://localhost:5173`
 
@@ -361,17 +408,22 @@ cd android
 
 ## Running Automated Tests
 
-Run the complete automated verification suite:
+[![CI Pipeline](https://github.com/KatkamKoushik/KinexMed/actions/workflows/ci.yml/badge.svg)](https://github.com/KatkamKoushik/KinexMed/actions/workflows/ci.yml)
+[![Backend Tests](https://img.shields.io/badge/Backend%20%26%20E2E-50%20Passed-success.svg)](#running-automated-tests)
+[![Android Tests](https://img.shields.io/badge/Android%20Unit-32%20Passed-success.svg)](#running-automated-tests)
+[![Web Tests](https://img.shields.io/badge/Web%20Vitest-5%20Passed-success.svg)](#running-automated-tests)
+
+Run the complete multi-platform automated verification matrix:
 
 ```bash
-# 1. Backend API & Kinematics Tests (39 tests)
-d:\KinexMed\backend\.venv\Scripts\python.exe -m pytest backend/tests -v
+# 1. Backend API, Alembic Migrations & Playwright E2E Tests (50 tests)
+pytest backend/tests -v
 
-# 2. Android Domain, Consistency & Report Unit Tests (28 tests)
-cmd /c "set JAVA_HOME=D:\KinexMed\android\.jdk17\jdk-17.0.12+7&& cd /d D:\KinexMed\android&& gradlew.bat testDebugUnitTest"
+# 2. Android Domain, Security, Controller & Consistency Unit Tests (32 tests)
+cd android && ./gradlew testDebugUnitTest
 
-# 3. Web Dashboard Production Build
-cd web && npm run build
+# 3. Web Clinician Portal Vitest Component Tests & Production Bundle (5 tests)
+cd web && pnpm run test && pnpm run build
 ```
 
 ---

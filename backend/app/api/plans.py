@@ -3,6 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
+from backend.app.core.security import verify_api_key
 from backend.app.models.plan import PlanModel, PlanExerciseModel
 from backend.app.schemas.plan import PlanCreate, PlanUpdate, PlanResponse
 
@@ -20,7 +21,7 @@ def list_plans(
     return query.order_by(PlanModel.created_at.desc()).all()
 
 @router.get("/{plan_id}", response_model=PlanResponse, summary="Get exercise plan by ID")
-def get_plan(plan_id: str, db: Session = Depends(get_db)):
+def get_plan(plan_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     plan = db.query(PlanModel).filter(PlanModel.id == plan_id).first()
     if not plan:
         raise HTTPException(
@@ -30,7 +31,7 @@ def get_plan(plan_id: str, db: Session = Depends(get_db)):
     return plan
 
 @router.post("", response_model=PlanResponse, status_code=status.HTTP_201_CREATED, summary="Create a new exercise plan")
-def create_plan(payload: PlanCreate, db: Session = Depends(get_db)):
+def create_plan(payload: PlanCreate, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     try:
         if payload.is_active:
             # Deactivate other active plans if this one is marked active
@@ -63,7 +64,7 @@ def create_plan(payload: PlanCreate, db: Session = Depends(get_db)):
         )
 
 @router.put("/{plan_id}", response_model=PlanResponse, summary="Update an existing exercise plan")
-def update_plan(plan_id: str, payload: PlanUpdate, db: Session = Depends(get_db)):
+def update_plan(plan_id: str, payload: PlanUpdate, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     plan = db.query(PlanModel).filter(PlanModel.id == plan_id).first()
     if not plan:
         raise HTTPException(
@@ -107,7 +108,7 @@ def update_plan(plan_id: str, payload: PlanUpdate, db: Session = Depends(get_db)
         )
 
 @router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete an exercise plan")
-def delete_plan(plan_id: str, db: Session = Depends(get_db)):
+def delete_plan(plan_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     plan = db.query(PlanModel).filter(PlanModel.id == plan_id).first()
     if not plan:
         raise HTTPException(

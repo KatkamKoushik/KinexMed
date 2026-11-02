@@ -1,5 +1,9 @@
 # Local Rehabilitation Memory & Conversational Assistant
 
+[Home](Home.md) · [System Architecture](System-Architecture-and-Pipeline.md) · [Biomechanical Geometry](Biomechanical-Geometry-and-FSM.md) · [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) · [Local Rehab Memory](Local-Rehab-Memory-and-Assistant.md) · [Clinician Portal & REST API](Clinician-Portal-and-Backend-API.md) · [Physical Validation & Testing](Physical-Validation-and-Troubleshooting.md)
+
+---
+
 KinexMed incorporates a local-first conversational rehabilitation memory layer. Patients can query their historical kinematic sessions, rejection causes, and adherence metrics in plain natural language.
 
 ---
@@ -73,3 +77,17 @@ To guarantee predictable latency and prevent token budget exhaustion on local de
 - **Wide Date Ranges (Week / Month / All-time):** Handled via SQL `COUNT(*)`, `SUM(valid_reps)`, `AVG(duration_seconds)`. Only numerical summaries are fed to the explanation layer.
 - **Single Session / Specific Rep:** Retrieved by direct primary key query (`sessionId`, `repNumber`).
 - **Hallucination Prevention:** The explanation prompt strictly forbids diagnosing medical conditions, inventing unrecorded angles, or asserting clinical improvement. If no data exists, it states: *"No sessions recorded for that timeframe."*
+
+---
+
+## 4. Prompt Injection Sanitization & Security Boundaries
+
+In physical rehabilitation contexts, adversarial or malformed user prompts must never cause the on-device assistant to alter clinical records or execute unauthorized actions:
+
+- **Input Sanitization:** Strips Markdown headings, block delimiters, and prompt override tokens (`<system>`, `ignore previous instructions`).
+- **Bounded Input Window:** Restricts user prompt queries to a maximum of 500 characters, preventing prompt injection overflow attacks.
+- **Strict Role-Grounded System Prompt:** The system prompt binds model responses strictly to the retrieved SQL evidence context. If requested information is outside the retrieved rehabilitation session data, the model returns a deterministic fallback: *"I can only answer questions regarding your recorded rehabilitation sessions."*
+
+---
+
+**Navigation:** [Home](Home.md) | [Architecture](System-Architecture-and-Pipeline.md) | [Biomechanics & FSM](Biomechanical-Geometry-and-FSM.md) | [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) | [Rehab Memory](Local-Rehab-Memory-and-Assistant.md) | [Clinician API & Portal](Clinician-Portal-and-Backend-API.md) | [Physical Validation](Physical-Validation-and-Troubleshooting.md)

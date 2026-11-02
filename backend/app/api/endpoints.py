@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
+from backend.app.core.security import verify_api_key
 from backend.app.models.session import SessionModel, RepModel, EvidenceEventModel
 from backend.app.schemas.session import (
     SessionCreate,
@@ -19,7 +20,11 @@ router = APIRouter(tags=["sessions"])
     status_code=status.HTTP_201_CREATED,
     summary="Record a completed exercise session (idempotent)"
 )
-def create_session(payload: SessionCreate, db: Session = Depends(get_db)):
+def create_session(
+    payload: SessionCreate,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
     """
     Idempotent session ingestion.
     If a session with payload.id already exists (e.g. offline sync retry),
@@ -76,7 +81,8 @@ def list_sessions(
     device_id: Optional[str] = Query(None, description="Filter by patient device identifier"),
     limit: int = Query(100, ge=1, le=500, description="Maximum sessions to return"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
 ):
     query = db.query(SessionModel)
     if exercise_name:
@@ -97,7 +103,11 @@ def list_sessions(
     response_model=SessionDetailResponse,
     summary="Retrieve single session with detailed kinematics and rep breakdown"
 )
-def get_session(session_id: str, db: Session = Depends(get_db)):
+def get_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
     if not session:
         raise HTTPException(
@@ -110,7 +120,11 @@ def get_session(session_id: str, db: Session = Depends(get_db)):
     "/sessions/{session_id}/summary",
     summary="Generate grounded, non-diagnostic natural language summary of completed session"
 )
-async def get_session_summary(session_id: str, db: Session = Depends(get_db)):
+async def get_session_summary(
+    session_id: str,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
     session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
     if not session:
         raise HTTPException(

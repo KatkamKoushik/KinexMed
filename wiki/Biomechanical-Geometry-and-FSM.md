@@ -1,5 +1,9 @@
 # Biomechanical Geometry & Finite State Machines
 
+[Home](Home.md) · [System Architecture](System-Architecture-and-Pipeline.md) · [Biomechanical Geometry](Biomechanical-Geometry-and-FSM.md) · [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) · [Local Rehab Memory](Local-Rehab-Memory-and-Assistant.md) · [Clinician Portal & REST API](Clinician-Portal-and-Backend-API.md) · [Physical Validation & Testing](Physical-Validation-and-Troubleshooting.md)
+
+---
+
 KinexMed eliminates heuristic guesswork by evaluating movement kinematics deterministically through Euclidean 3D vector mathematics and stateful movement finite state machines.
 
 ---
@@ -103,3 +107,17 @@ The `EvidenceEngine` operates as a gatekeeper before every kinematic calculation
 2. **Confidence Threshold:** Landmark detection confidence must exceed `0.65`.
 3. **Camera Distance Verification:** Inter-ankle to shoulder vertical span must match expected optical proportions for `2.0m–2.5m` distance.
 4. **Failure Logging:** When an evidence failure occurs, an `EvidenceEventEntity` is immediately created in Room SQLite recording the timestamp, metric, and exact cause (e.g. `OCCLUDED_KNEE`, `OUT_OF_FRAME`, `TOO_CLOSE`). Repetitions are never scored while in evidence failure.
+
+---
+
+## 5. Decoupled Pose Analysis Controller
+
+The kinematic calculations, One-Euro filtering, and FSM transition loops are encapsulated inside `PoseAnalysisController.kt` (`com.kinexmed.domain.controller`), decoupling algorithmic execution from the Android UI thread and activity lifecycle:
+
+- **State Encapsulation:** Holds active exercise definition, One-Euro filter instances, and the stateful `ExerciseStateMachine`.
+- **Episode Aggregation:** Tracks occlusion periods (`EvidenceEpisode`) without discarding the ongoing repetition state.
+- **Headless Unit Verification:** Decoupled design allows full testing of joint angle calculations and state transitions without initializing Android Views or CameraX hardware (verified in `PoseAnalysisControllerTest.kt`).
+
+---
+
+**Navigation:** [Home](Home.md) | [Architecture](System-Architecture-and-Pipeline.md) | [Biomechanics & FSM](Biomechanical-Geometry-and-FSM.md) | [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) | [Rehab Memory](Local-Rehab-Memory-and-Assistant.md) | [Clinician API & Portal](Clinician-Portal-and-Backend-API.md) | [Physical Validation](Physical-Validation-and-Troubleshooting.md)

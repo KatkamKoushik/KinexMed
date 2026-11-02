@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.core.database import Base, engine
+from backend.app.core.database import Base, engine, run_migrations
 from backend.app.models.session import SessionModel, RepModel, EvidenceEventModel
 from backend.app.models.plan import PlanModel, PlanExerciseModel
 from backend.app.models.feedback import FeedbackModel
@@ -17,9 +17,9 @@ logger = logging.getLogger("kinexmed.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database schema safely during application startup lifecycle
-    logger.info("Initializing KinexMed SQLite schema via lifespan event")
-    Base.metadata.create_all(bind=engine)
+    # Initialize database schema safely via version-controlled Alembic migrations
+    logger.info("Applying KinexMed database schema migrations via Alembic")
+    run_migrations()
     yield
 
 app = FastAPI(

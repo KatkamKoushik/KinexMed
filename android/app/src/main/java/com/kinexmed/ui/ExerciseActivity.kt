@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.View
@@ -16,28 +15,23 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.kinexmed.R
 import com.kinexmed.audio.VoiceFeedbackManager
+import com.kinexmed.camera.CameraManager
 import com.kinexmed.data.db.AppDatabase
 import com.kinexmed.data.repository.SessionRepository
-import com.kinexmed.domain.evidence.EvidenceEngine
-import com.kinexmed.domain.filter.OneEuroFilter
+import com.kinexmed.domain.controller.PoseAnalysisController
 import com.kinexmed.domain.fsm.ExerciseStateMachine
 import com.kinexmed.domain.fsm.SquatStateMachine
-import com.kinexmed.domain.geometry.GeometryEngine
 import com.kinexmed.domain.model.*
 import com.kinexmed.domain.registry.ExerciseRegistry
 import com.kinexmed.mediapipe.PoseLandmarkerHelper
 import kotlinx.coroutines.*
 import java.util.UUID
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
  * Real-time exercise observation Activity for KinexMed.
@@ -88,10 +82,9 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
     private lateinit var btnViewHistoryOverlay: Button
     private lateinit var btnExitHomeOverlay: Button
 
-    private var cameraProvider: ProcessCameraProvider? = null
-    private var imageAnalysis: ImageAnalysis? = null
-    private lateinit var cameraExecutor: ExecutorService
-
+    // Modularized Subsystems
+    private lateinit var cameraManager: CameraManager
+    private lateinit var poseController: PoseAnalysisController
     private lateinit var poseLandmarkerHelper: PoseLandmarkerHelper
     private lateinit var voiceFeedback: VoiceFeedbackManager
     private lateinit var sessionRepository: SessionRepository
@@ -101,9 +94,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         const val EXTRA_EXERCISE_ID = "extra_exercise_id"
     }
 
-    // Pipeline Domain Components
-    private val evidenceEngine = EvidenceEngine()
-    private val angleFilter = OneEuroFilter(minCutoff = 1.2, beta = 0.05)
     private lateinit var exerciseDef: ExerciseDefinition
     private lateinit var exerciseFsm: ExerciseStateMachine
 
@@ -126,11 +116,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
 
     // In-session Kinematic Data
     private val sessionReps = mutableListOf<RepRecord>()
-    private val evidenceEpisodes = mutableListOf<EvidenceEpisode>()
-    private var currentEvidenceEpisode: EvidenceEpisode? = null
-    private var minAngleSeenOverall = 180.0
-    private var maxAngleSeenOverall = 0.0
-    private var lastKnownAngle = 180.0
     private var latestCameraBitmap: Bitmap? = null
 
     private var timerJob: Job? = null
@@ -263,7 +248,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
     }
 
     private fun initServices() {
-        cameraExecutor = Executors.newSingleThreadExecutor()
+        cameraManager = CameraManager(this)
         voiceFeedback = VoiceFeedbackManager(this)
 
         val db = AppDatabase.getInstance(this)
@@ -275,15 +260,14 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             android.util.Log.d("SquatFSM", msg)
         }
 
+        poseController = PoseAnalysisController(exerciseDef, exerciseFsm)
+
         poseLandmarkerHelper = PoseLandmarkerHelper(
             context = this,
             landmarkerListener = this
         )
     }
 
-    /**
-     * Updates all UI elements, overlays, and button states to match the session lifecycle.
-     */
     private fun updateUiForLifecycleState() {
         when (sessionLifecycleState) {
             SessionLifecycleState.IDLE -> {
@@ -369,30 +353,18 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         }
     }
 
-    /**
-     * Explicit user action or hands-free auto-trigger: starts a brand new exercise session.
-     * Generates a new unique session ID, resets the timer, FSM, and in-memory reps.
-     */
     private fun startNewSession() {
         countdownJob?.cancel()
         countdownJob = null
         idleEvidenceStartTimeMs = 0L
 
-        GeometryEngine.resetSidePreferences()
         currentSessionId = UUID.randomUUID().toString()
         sessionStartTimeMs = System.currentTimeMillis()
         pausedAtMs = 0L
         totalPausedDurationMs = 0L
         sessionReps.clear()
-        evidenceEpisodes.clear()
-        currentEvidenceEpisode = null
-        minAngleSeenOverall = 180.0
-        maxAngleSeenOverall = 0.0
-        lastKnownAngle = 180.0
 
-        exerciseFsm.reset()
-        evidenceEngine.reset()
-        angleFilter.reset()
+        poseController.reset()
 
         sessionLifecycleState = SessionLifecycleState.ACTIVE
         updateUiForLifecycleState()
@@ -424,11 +396,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         }
     }
 
-    /**
-     * Monotonic active session timer.
-     * Computes elapsed time purely from sessionStartTimeMs and total paused duration.
-     * Decoupled from FSM states, pose loss, and frame processing.
-     */
     private fun startTimerLoop() {
         timerJob?.cancel()
         timerJob = lifecycleScope.launch {
@@ -488,7 +455,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
                     .setNegativeButton("Discard") { _, _ ->
                         sessionLifecycleState = SessionLifecycleState.CANCELLED
                         sessionReps.clear()
-                        exerciseFsm.reset()
+                        poseController.reset()
                         finish()
                     }
                     .setNeutralButton("Keep Exercising", null)
@@ -502,19 +469,13 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         finish()
     }
 
-    /**
-     * Finish button click handler.
-     * Debounces rapid double-clicks and shows an explicit confirmation dialog.
-     */
     private fun onFinishSessionClicked() {
         val now = SystemClock.elapsedRealtime()
         if (now - lastFinishClickTimeMs < 800L) {
-            // Debounce rapid double-clicks
             return
         }
         lastFinishClickTimeMs = now
 
-        // Finish Session is ONLY permitted when ACTIVE or PAUSED
         if (sessionLifecycleState != SessionLifecycleState.ACTIVE && sessionLifecycleState != SessionLifecycleState.PAUSED) {
             return
         }
@@ -532,9 +493,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             .show()
     }
 
-    /**
-     * Confirms before cancelling an active exercise session.
-     */
     private fun confirmCancelSession() {
         if (sessionLifecycleState == SessionLifecycleState.IDLE) {
             finish()
@@ -551,7 +509,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             .setPositiveButton("Stop & Discard") { _, _ ->
                 sessionLifecycleState = SessionLifecycleState.CANCELLED
                 sessionReps.clear()
-                exerciseFsm.reset()
+                poseController.reset()
                 voiceFeedback.speakFeedback("Session stopped for safety. Please rest and consult your clinician if you feel discomfort.", isHighPriority = true)
                 updateUiForLifecycleState()
                 finish()
@@ -560,14 +518,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             .show()
     }
 
-    /**
-     * Executes the finishing pipeline:
-     * 1. Gates state to FINISHING (stops new frames and disables buttons)
-     * 2. Calculates accurate active duration
-     * 3. Saves session to Room SQLite
-     * 4. Attempts sync to FastAPI backend
-     * 5. Enters COMPLETED state and displays completion overlay
-     */
     private fun executeFinishingPipeline() {
         if (sessionLifecycleState == SessionLifecycleState.FINISHING || sessionLifecycleState == SessionLifecycleState.COMPLETED) {
             return
@@ -581,16 +531,13 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             pausedAtMs = 0L
         }
 
-        if (currentEvidenceEpisode != null) {
-            evidenceEpisodes.add(currentEvidenceEpisode!!)
-            currentEvidenceEpisode = null
-        }
+        poseController.finalizeEpisodes()
 
         val rawDurationMs = (completedAt - sessionStartTimeMs - totalPausedDurationMs).coerceAtLeast(0L)
         val durationSeconds = (rawDurationMs / 1000.0).coerceAtLeast(1.0)
         val validReps = sessionReps.count { it.isValid }
         val totalReps = sessionReps.size
-        val warningEpisodeCount = evidenceEpisodes.size
+        val warningEpisodeCount = poseController.evidenceEpisodes.size
 
         val avgPeak = if (sessionReps.isNotEmpty()) {
             sessionReps.map { it.peakKneeAngle }.average()
@@ -611,11 +558,11 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             totalReps = totalReps,
             validReps = validReps,
             avgPeakKneeAngle = avgPeak,
-            minKneeAngle = if (minAngleSeenOverall <= 180.0) minAngleSeenOverall else 0.0,
-            maxKneeAngle = maxAngleSeenOverall,
+            minKneeAngle = if (poseController.minAngleSeenOverall <= 180.0) poseController.minAngleSeenOverall else 0.0,
+            maxKneeAngle = poseController.maxAngleSeenOverall,
             evidenceFailureCount = warningEpisodeCount,
             reps = sessionReps.toList(),
-            evidenceEpisodes = evidenceEpisodes.toList(),
+            evidenceEpisodes = poseController.evidenceEpisodes.toList(),
             videoRecordingPath = videoPath,
             isRecordingEnabled = isRecordingOptedIn
         )
@@ -638,7 +585,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
                         "Saved locally in Room SQLite (sync pending)"
                     }
 
-                    // Populate completion overlay statistics
                     tvCompletionValidReps.text = "$validReps"
                     tvCompletionTotalReps.text = "Total Reps: $totalReps"
                     val minutes = durationSeconds.toInt() / 60
@@ -655,86 +601,25 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
     }
 
     private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener({
-            cameraProvider = cameraProviderFuture.get()
-            bindCameraUseCases()
-        }, ContextCompat.getMainExecutor(this))
-    }
-
-    private fun bindCameraUseCases() {
-        val provider = cameraProvider ?: return
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-        val preview = Preview.Builder()
-            .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-            .build()
-            .also {
-                it.setSurfaceProvider(viewFinder.surfaceProvider)
-            }
-
-        imageAnalysis = ImageAnalysis.Builder()
-            .setTargetAspectRatio(AspectRatio.RATIO_16_9)
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-            .build()
-            .also {
-                it.setAnalyzer(cameraExecutor) { imageProxy ->
-                    processCameraImage(imageProxy)
+        cameraManager.startCamera(
+            lifecycleOwner = this,
+            viewFinder = viewFinder,
+            onFrameAvailable = { rotatedBitmap ->
+                if (sessionLifecycleState != SessionLifecycleState.PAUSED &&
+                    sessionLifecycleState != SessionLifecycleState.FINISHING &&
+                    sessionLifecycleState != SessionLifecycleState.COMPLETED
+                ) {
+                    latestCameraBitmap = rotatedBitmap
+                    poseLandmarkerHelper.detectLiveStream(rotatedBitmap)
                 }
+            },
+            onError = { exc ->
+                Toast.makeText(this, "Failed to start camera: ${exc.message}", Toast.LENGTH_SHORT).show()
             }
-
-        try {
-            provider.unbindAll()
-            provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
-        } catch (exc: Exception) {
-            Toast.makeText(this, "Failed to bind camera: ${exc.message}", Toast.LENGTH_SHORT).show()
-        }
+        )
     }
 
-    @androidx.annotation.OptIn(ExperimentalGetImage::class)
-    private fun processCameraImage(imageProxy: ImageProxy) {
-        // Drop camera frame processing when session is paused or finishing/completed
-        if (sessionLifecycleState == SessionLifecycleState.PAUSED ||
-            sessionLifecycleState == SessionLifecycleState.FINISHING ||
-            sessionLifecycleState == SessionLifecycleState.COMPLETED
-        ) {
-            imageProxy.close()
-            return
-        }
-
-        val bitmapBuffer = Bitmap.createBitmap(
-            imageProxy.width,
-            imageProxy.height,
-            Bitmap.Config.ARGB_8888
-        )
-        bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer)
-
-        val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-        val matrix = Matrix().apply {
-            postRotate(rotationDegrees.toFloat())
-        }
-
-        val rotatedBitmap = Bitmap.createBitmap(
-            bitmapBuffer,
-            0,
-            0,
-            bitmapBuffer.width,
-            bitmapBuffer.height,
-            matrix,
-            true
-        )
-
-        imageProxy.close()
-        latestCameraBitmap = rotatedBitmap
-        poseLandmarkerHelper.detectLiveStream(rotatedBitmap)
-    }
-
-    /**
-     * MediaPipe result callback invoked asynchronously.
-     */
     override fun onResults(resultBundle: PoseLandmarkerHelper.ResultBundle) {
-        // 1. Performance benchmarking instrumentation (MediaPipe CPU Delegate)
         perfFrameCount++
         perfTotalInferenceTimeMs += resultBundle.inferenceTimeMs
         val perfNow = SystemClock.elapsedRealtime()
@@ -753,9 +638,9 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         val timestamp = System.currentTimeMillis()
         val landmarks = resultBundle.domainLandmarks
 
-        // 2. Gate by SessionLifecycleState
+        // Gate by SessionLifecycleState
         if (sessionLifecycleState != SessionLifecycleState.ACTIVE) {
-            val evidenceStatus = evidenceEngine.evaluateEvidence(landmarks, timestamp, exerciseDef.type)
+            val evidenceStatus = poseController.evaluateEvidenceOnly(landmarks, timestamp)
             runOnUiThread {
                 overlayView.updatePose(landmarks, evidenceStatus, null)
 
@@ -775,7 +660,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
                     }
                     SessionLifecycleState.PREPARING -> {
                         if (evidenceStatus is EvidenceStatus.Insufficient) {
-                            // Evidence lost during countdown: reset
                             countdownJob?.cancel()
                             countdownJob = null
                             sessionLifecycleState = SessionLifecycleState.IDLE
@@ -791,81 +675,38 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
             return
         }
 
-        // 3. Evidence Check during ACTIVE exercise
-        val evidenceStatus = evidenceEngine.evaluateEvidence(landmarks, timestamp, exerciseDef.type)
+        // Active State: Process through PoseAnalysisController
+        val frameResult = poseController.processFrame(landmarks, timestamp)
 
         runOnUiThread {
             if (sessionLifecycleState != SessionLifecycleState.ACTIVE) return@runOnUiThread
 
+            val evidenceStatus = frameResult.evidenceStatus
             if (evidenceStatus is EvidenceStatus.Insufficient) {
-                val failureReason = evidenceStatus.reason
-                val episode = currentEvidenceEpisode
-                if (episode != null && episode.reason == failureReason && (timestamp - episode.endTimeMs) < 1000L) {
-                    episode.endTimeMs = timestamp
-                    episode.frameCount++
-                } else {
-                    if (episode != null) {
-                        evidenceEpisodes.add(episode)
-                    }
-                    currentEvidenceEpisode = EvidenceEpisode(
-                        reason = failureReason,
-                        startTimeMs = timestamp,
-                        endTimeMs = timestamp,
-                        frameCount = 1
-                    )
-                }
-
                 tvEvidenceMessage.text = evidenceStatus.userMessage
                 cardEvidenceStatus.setCardBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_orange_dark))
                 tvGuidanceMessage.text = evidenceStatus.userMessage
                 voiceFeedback.speakGuidance(evidenceStatus.userMessage)
                 overlayView.updatePose(landmarks, evidenceStatus, null)
-
-                // Pass into FSM so timeout/grace periods are maintained deterministically.
-                // Notice: Existing session and rep records are NEVER reset on temporary pose loss!
-                val fsmResult = exerciseFsm.update(landmarks, lastKnownAngle, timestamp, evidenceStatus)
-                tvStateBadge.text = fsmResult.state.name
+                tvStateBadge.text = frameResult.fsmResult.state.name
                 return@runOnUiThread
-            }
-
-            // Evidence is sufficient: finalize any active failure episode
-            if (currentEvidenceEpisode != null) {
-                evidenceEpisodes.add(currentEvidenceEpisode!!)
-                currentEvidenceEpisode = null
             }
 
             tvEvidenceMessage.text = "Good visual evidence. Tracking active."
             cardEvidenceStatus.setCardBackgroundColor(0xCC111827.toInt())
 
-            // 4. Deterministic Exercise Joint Metric Calculation via Registry
-            val rawAngle = ExerciseRegistry.extractMetric(exerciseDef.type, landmarks, timestamp)
-            if (rawAngle == null) {
-                overlayView.updatePose(landmarks, evidenceStatus, null)
-                return@runOnUiThread
-            }
-
-            // 5. Temporal Smoothing
-            val smoothedAngle = angleFilter.filter(rawAngle.angleDegrees, timestamp)
-            lastKnownAngle = smoothedAngle
-
-            if (smoothedAngle < minAngleSeenOverall) minAngleSeenOverall = smoothedAngle
-            if (smoothedAngle > maxAngleSeenOverall) maxAngleSeenOverall = smoothedAngle
-
-            // 6. Exercise State Machine & Rule Validation
-            val fsmResult = exerciseFsm.update(landmarks, smoothedAngle, timestamp, evidenceStatus)
-
-            // Update Overlay Canvas
+            val smoothedAngle = frameResult.smoothedAngle
             overlayView.updatePose(landmarks, evidenceStatus, smoothedAngle)
 
-            // Update UI State Badge & Metrics
-            tvStateBadge.text = fsmResult.state.name
-            tvCurrentAngle.text = "${smoothedAngle.toInt()}${exerciseFsm.primaryMetricUnit}"
-            tvValidReps.text = "${fsmResult.validReps}"
-            tvTotalReps.text = "Total: ${fsmResult.totalReps}"
-            tvGuidanceMessage.text = fsmResult.feedbackMessage
+            tvStateBadge.text = frameResult.fsmResult.state.name
+            if (smoothedAngle != null) {
+                tvCurrentAngle.text = "${smoothedAngle.toInt()}${exerciseFsm.primaryMetricUnit}"
+            }
+            tvValidReps.text = "${frameResult.fsmResult.validReps}"
+            tvTotalReps.text = "Total: ${frameResult.fsmResult.totalReps}"
+            tvGuidanceMessage.text = frameResult.fsmResult.feedbackMessage
 
-            // Handle Completed Repetition
-            fsmResult.completedRep?.let { rawRep ->
+            frameResult.completedRep?.let { rawRep ->
                 val prefs = getSharedPreferences("kinexmed_settings", Context.MODE_PRIVATE)
                 val isEvidenceCaptureEnabled = prefs.getBoolean("pref_evidence_capture", true)
                 var capturedPath: String? = null
@@ -922,7 +763,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
 
     override fun onResume() {
         super.onResume()
-        // Ensure paused state UI remains consistent when foregrounded
         if (sessionLifecycleState == SessionLifecycleState.PAUSED) {
             updateUiForLifecycleState()
         }
@@ -934,6 +774,6 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         timerJob?.cancel()
         poseLandmarkerHelper.clear()
         voiceFeedback.shutdown()
-        cameraExecutor.shutdown()
+        cameraManager.shutdown()
     }
 }

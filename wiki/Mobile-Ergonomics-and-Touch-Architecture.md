@@ -1,5 +1,9 @@
 # Mobile UX Architecture & Native Ergonomics
 
+[Home](Home.md) · [System Architecture](System-Architecture-and-Pipeline.md) · [Biomechanical Geometry](Biomechanical-Geometry-and-FSM.md) · [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) · [Local Rehab Memory](Local-Rehab-Memory-and-Assistant.md) · [Clinician Portal & REST API](Clinician-Portal-and-Backend-API.md) · [Physical Validation & Testing](Physical-Validation-and-Troubleshooting.md)
+
+---
+
 KinexMed is built strictly for hand-held physical ergonomics, eliminating desktop-biased web paradigms and prioritizing mobile thumb-zone reachability, touch target standards, and native spring physics.
 
 ---
@@ -123,3 +127,7 @@ fun attachSpringPress(view: View) {
 - [x] **Flexible Viewport Bounds:** Card widths adapt dynamically (`maxWidth: 412dp` or constraint margins); zero horizontal clipping on narrow displays.
 - [x] **Reduced Motion Accessibility:** All animations check system `prefers-reduced-motion` and collapse durations when enabled.
 - [x] **Persistent Navigation State:** Bottom navigation tabs retain scroll positions and view models across tab switches.
+
+---
+
+**Navigation:** [Home](Home.md) | [Architecture](System-Architecture-and-Pipeline.md) | [Biomechanics & FSM](Biomechanical-Geometry-and-FSM.md) | [Mobile Ergonomics](Mobile-Ergonomics-and-Touch-Architecture.md) | [Rehab Memory](Local-Rehab-Memory-and-Assistant.md) | [Clinician API & Portal](Clinician-Portal-and-Backend-API.md) | [Physical Validation](Physical-Validation-and-Troubleshooting.md)

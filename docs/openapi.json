@@ -1,0 +1,1784 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "KinexMed Rehabilitation API",
+    "description": "Real-time on-device session recording, clinician dashboard, plans, and feedback backend.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/sessions": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Record a completed exercise session (idempotent)",
+        "description": "Idempotent session ingestion.\nIf a session with payload.id already exists (e.g. offline sync retry),\nreturns the existing session without duplicating reps or creating errors.",
+        "operationId": "create_session_sessions_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Retrieve all recorded exercise sessions",
+        "operationId": "list_sessions_sessions_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "exercise_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by exercise name (e.g. squat)",
+              "title": "Exercise Name"
+            },
+            "description": "Filter by exercise name (e.g. squat)"
+          },
+          {
+            "name": "device_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by patient device identifier",
+              "title": "Device Id"
+            },
+            "description": "Filter by patient device identifier"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Maximum sessions to return",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Maximum sessions to return"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Offset for pagination",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Offset for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionSummaryResponse"
+                  },
+                  "title": "Response List Sessions Sessions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Retrieve single session with detailed kinematics and rep breakdown",
+        "operationId": "get_session_sessions__session_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sessions/{session_id}/summary": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Generate grounded, non-diagnostic natural language summary of completed session",
+        "operationId": "get_session_summary_sessions__session_id__summary_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "sessions",
+          "health"
+        ],
+        "summary": "Health check with database connectivity ping",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans": {
+      "get": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "List all exercise plans",
+        "operationId": "list_plans_plans_get",
+        "parameters": [
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Filter for active plans only",
+              "default": false,
+              "title": "Active Only"
+            },
+            "description": "Filter for active plans only"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanResponse"
+                  },
+                  "title": "Response List Plans Plans Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Create a new exercise plan",
+        "operationId": "create_plan_plans_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plans/{plan_id}": {
+      "get": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Get exercise plan by ID",
+        "operationId": "get_plan_plans__plan_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Update an existing exercise plan",
+        "operationId": "update_plan_plans__plan_id__put",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Delete an exercise plan",
+        "operationId": "delete_plan_plans__plan_id__delete",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback": {
+      "get": {
+        "tags": [
+          "feedback"
+        ],
+        "summary": "List all recent clinician feedback",
+        "operationId": "list_feedback_feedback_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeedbackResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Feedback Feedback Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "feedback"
+        ],
+        "summary": "Submit clinician feedback on a session",
+        "operationId": "create_feedback_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/feedback/session/{session_id}": {
+      "get": {
+        "tags": [
+          "feedback"
+        ],
+        "summary": "Get feedback for a specific session",
+        "operationId": "get_session_feedback_feedback_session__session_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FeedbackResponse"
+                  },
+                  "title": "Response Get Session Feedback Feedback Session  Session Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/session/{session_id}": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Generate structured clinical adherence report for a single session",
+        "operationId": "get_session_report_reports_session__session_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Session Report Reports Session  Session Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/weekly": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Generate aggregated clinical adherence report for the current week",
+        "operationId": "get_weekly_report_reports_weekly_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_sessions",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 14,
+              "minimum": 1,
+              "default": 5,
+              "title": "Target Sessions"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Weekly Report Reports Weekly Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/monthly": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Generate aggregated clinical adherence report for the current month",
+        "operationId": "get_monthly_report_reports_monthly_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Monthly Report Reports Monthly Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Check",
+        "operationId": "health_check__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "EvidenceEventCreate": {
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Event Type"
+          },
+          "start_time_ms": {
+            "type": "integer",
+            "title": "Start Time Ms",
+            "description": "Epoch milliseconds when evidence event started"
+          },
+          "end_time_ms": {
+            "type": "integer",
+            "title": "End Time Ms",
+            "description": "Epoch milliseconds when evidence event ended"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "description": "Duration of evidence event in milliseconds"
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Frame Count",
+            "description": "Number of frames affected",
+            "default": 1
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "default": ""
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_type",
+          "start_time_ms",
+          "end_time_ms",
+          "duration_ms"
+        ],
+        "title": "EvidenceEventCreate"
+      },
+      "EvidenceEventResponse": {
+        "properties": {
+          "event_type": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Event Type"
+          },
+          "start_time_ms": {
+            "type": "integer",
+            "title": "Start Time Ms",
+            "description": "Epoch milliseconds when evidence event started"
+          },
+          "end_time_ms": {
+            "type": "integer",
+            "title": "End Time Ms",
+            "description": "Epoch milliseconds when evidence event ended"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "description": "Duration of evidence event in milliseconds"
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Frame Count",
+            "description": "Number of frames affected",
+            "default": 1
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "default": ""
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_type",
+          "start_time_ms",
+          "end_time_ms",
+          "duration_ms",
+          "id",
+          "session_id"
+        ],
+        "title": "EvidenceEventResponse"
+      },
+      "FeedbackCreate": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author",
+            "default": "Clinician"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "message"
+        ],
+        "title": "FeedbackCreate"
+      },
+      "FeedbackResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "author": {
+            "type": "string",
+            "title": "Author"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "author",
+          "message",
+          "created_at"
+        ],
+        "title": "FeedbackResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PlanCreate": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "default": ""
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "frequency_per_week": {
+            "type": "integer",
+            "title": "Frequency Per Week",
+            "default": 5
+          },
+          "exercises": {
+            "items": {
+              "$ref": "#/components/schemas/PlanExerciseSchema"
+            },
+            "type": "array",
+            "title": "Exercises",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "PlanCreate"
+      },
+      "PlanExerciseSchema": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "exercise_type": {
+            "type": "string",
+            "title": "Exercise Type"
+          },
+          "target_sets": {
+            "type": "integer",
+            "title": "Target Sets",
+            "default": 3
+          },
+          "target_reps": {
+            "type": "integer",
+            "title": "Target Reps",
+            "default": 10
+          },
+          "order_index": {
+            "type": "integer",
+            "title": "Order Index",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "exercise_type"
+        ],
+        "title": "PlanExerciseSchema"
+      },
+      "PlanResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "default": ""
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "frequency_per_week": {
+            "type": "integer",
+            "title": "Frequency Per Week"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "exercises": {
+            "items": {
+              "$ref": "#/components/schemas/PlanExerciseSchema"
+            },
+            "type": "array",
+            "title": "Exercises",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "is_active",
+          "frequency_per_week",
+          "created_at"
+        ],
+        "title": "PlanResponse"
+      },
+      "PlanUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "frequency_per_week": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency Per Week"
+          },
+          "exercises": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PlanExerciseSchema"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exercises"
+          }
+        },
+        "type": "object",
+        "title": "PlanUpdate"
+      },
+      "RepCreate": {
+        "properties": {
+          "rep_number": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rep Number",
+            "description": "Sequential repetition number starting from 1"
+          },
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid"
+          },
+          "start_timestamp_ms": {
+            "type": "integer",
+            "title": "Start Timestamp Ms",
+            "description": "Epoch milliseconds when repetition began"
+          },
+          "peak_timestamp_ms": {
+            "type": "integer",
+            "title": "Peak Timestamp Ms",
+            "description": "Epoch milliseconds at peak joint flexion"
+          },
+          "end_timestamp_ms": {
+            "type": "integer",
+            "title": "End Timestamp Ms",
+            "description": "Epoch milliseconds when repetition completed"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "description": "Repetition elapsed duration in milliseconds"
+          },
+          "peak_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Peak Knee Angle",
+            "description": "Peak flexion angle in degrees"
+          },
+          "start_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Start Knee Angle",
+            "description": "Starting extension angle in degrees"
+          },
+          "end_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "End Knee Angle",
+            "description": "Finishing extension angle in degrees"
+          },
+          "feedback_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Message",
+            "default": ""
+          },
+          "failure_reasons": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reasons"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rep_number",
+          "is_valid",
+          "start_timestamp_ms",
+          "peak_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "peak_knee_angle",
+          "start_knee_angle",
+          "end_knee_angle"
+        ],
+        "title": "RepCreate"
+      },
+      "RepResponse": {
+        "properties": {
+          "rep_number": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rep Number",
+            "description": "Sequential repetition number starting from 1"
+          },
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid"
+          },
+          "start_timestamp_ms": {
+            "type": "integer",
+            "title": "Start Timestamp Ms",
+            "description": "Epoch milliseconds when repetition began"
+          },
+          "peak_timestamp_ms": {
+            "type": "integer",
+            "title": "Peak Timestamp Ms",
+            "description": "Epoch milliseconds at peak joint flexion"
+          },
+          "end_timestamp_ms": {
+            "type": "integer",
+            "title": "End Timestamp Ms",
+            "description": "Epoch milliseconds when repetition completed"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Duration Ms",
+            "description": "Repetition elapsed duration in milliseconds"
+          },
+          "peak_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Peak Knee Angle",
+            "description": "Peak flexion angle in degrees"
+          },
+          "start_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Start Knee Angle",
+            "description": "Starting extension angle in degrees"
+          },
+          "end_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "End Knee Angle",
+            "description": "Finishing extension angle in degrees"
+          },
+          "feedback_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Message",
+            "default": ""
+          },
+          "failure_reasons": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reasons"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rep_number",
+          "is_valid",
+          "start_timestamp_ms",
+          "peak_timestamp_ms",
+          "end_timestamp_ms",
+          "duration_ms",
+          "peak_knee_angle",
+          "start_knee_angle",
+          "end_knee_angle",
+          "id",
+          "session_id"
+        ],
+        "title": "RepResponse"
+      },
+      "SessionCreate": {
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Device Id",
+            "default": "android-device"
+          },
+          "exercise_name": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Exercise Name",
+            "default": "squat"
+          },
+          "started_at": {
+            "type": "integer",
+            "title": "Started At",
+            "description": "Session epoch start timestamp in milliseconds"
+          },
+          "completed_at": {
+            "type": "integer",
+            "title": "Completed At",
+            "description": "Session epoch completion timestamp in milliseconds"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Duration Seconds",
+            "description": "Active session duration in seconds"
+          },
+          "total_reps": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Reps",
+            "description": "Total repetitions attempted"
+          },
+          "valid_reps": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Valid Reps",
+            "description": "Repetitions meeting clinical criteria"
+          },
+          "avg_peak_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Avg Peak Knee Angle",
+            "default": 0.0
+          },
+          "min_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Min Knee Angle",
+            "default": 0.0
+          },
+          "max_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Max Knee Angle",
+            "default": 0.0
+          },
+          "evidence_failure_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Evidence Failure Count",
+            "default": 0
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "reps": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/RepCreate"
+                },
+                "type": "array",
+                "maxItems": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reps"
+          },
+          "evidence_events": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EvidenceEventCreate"
+                },
+                "type": "array",
+                "maxItems": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "started_at",
+          "completed_at",
+          "duration_seconds",
+          "total_reps",
+          "valid_reps"
+        ],
+        "title": "SessionCreate"
+      },
+      "SessionDetailResponse": {
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Device Id",
+            "default": "android-device"
+          },
+          "exercise_name": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Exercise Name",
+            "default": "squat"
+          },
+          "started_at": {
+            "type": "integer",
+            "title": "Started At",
+            "description": "Session epoch start timestamp in milliseconds"
+          },
+          "completed_at": {
+            "type": "integer",
+            "title": "Completed At",
+            "description": "Session epoch completion timestamp in milliseconds"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Duration Seconds",
+            "description": "Active session duration in seconds"
+          },
+          "total_reps": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Reps",
+            "description": "Total repetitions attempted"
+          },
+          "valid_reps": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Valid Reps",
+            "description": "Repetitions meeting clinical criteria"
+          },
+          "avg_peak_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Avg Peak Knee Angle",
+            "default": 0.0
+          },
+          "min_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Min Knee Angle",
+            "default": 0.0
+          },
+          "max_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Max Knee Angle",
+            "default": 0.0
+          },
+          "evidence_failure_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Evidence Failure Count",
+            "default": 0
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "reps": {
+            "items": {
+              "$ref": "#/components/schemas/RepResponse"
+            },
+            "type": "array",
+            "title": "Reps"
+          },
+          "evidence_events": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceEventResponse"
+            },
+            "type": "array",
+            "title": "Evidence Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "started_at",
+          "completed_at",
+          "duration_seconds",
+          "total_reps",
+          "valid_reps",
+          "id",
+          "created_at"
+        ],
+        "title": "SessionDetailResponse"
+      },
+      "SessionSummaryResponse": {
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Device Id",
+            "default": "android-device"
+          },
+          "exercise_name": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Exercise Name",
+            "default": "squat"
+          },
+          "started_at": {
+            "type": "integer",
+            "title": "Started At",
+            "description": "Session epoch start timestamp in milliseconds"
+          },
+          "completed_at": {
+            "type": "integer",
+            "title": "Completed At",
+            "description": "Session epoch completion timestamp in milliseconds"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Duration Seconds",
+            "description": "Active session duration in seconds"
+          },
+          "total_reps": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total Reps",
+            "description": "Total repetitions attempted"
+          },
+          "valid_reps": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Valid Reps",
+            "description": "Repetitions meeting clinical criteria"
+          },
+          "avg_peak_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Avg Peak Knee Angle",
+            "default": 0.0
+          },
+          "min_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Min Knee Angle",
+            "default": 0.0
+          },
+          "max_knee_angle": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Max Knee Angle",
+            "default": 0.0
+          },
+          "evidence_failure_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Evidence Failure Count",
+            "default": 0
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "started_at",
+          "completed_at",
+          "duration_seconds",
+          "total_reps",
+          "valid_reps",
+          "id",
+          "created_at"
+        ],
+        "title": "SessionSummaryResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}
