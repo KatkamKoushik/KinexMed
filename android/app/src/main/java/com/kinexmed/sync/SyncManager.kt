@@ -28,6 +28,17 @@ class SyncManager(
         const val PREFS_NAME = "kinexmed_settings"
         const val KEY_SERVER_URL = "server_url"
         const val DEFAULT_SERVER_URL = "http://127.0.0.1:8000"
+
+        /**
+         * Checklist 20-N012: Compute bounded exponential backoff delay with jitter.
+         */
+        fun computeBackoffDelayMs(attempt: Int, initialDelayMs: Long = 1000L, maxDelayMs: Long = 30000L): Long {
+            val safeAttempt = attempt.coerceIn(0, 6)
+            val multiplier = 1L shl safeAttempt
+            val baseDelay = (initialDelayMs * multiplier).coerceAtMost(maxDelayMs)
+            val jitter = (baseDelay * 0.15 * Math.random()).toLong()
+            return (baseDelay + jitter).coerceAtMost(maxDelayMs)
+        }
     }
 
     private val client = OkHttpClient.Builder()

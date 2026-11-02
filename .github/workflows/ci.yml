@@ -1,0 +1,105 @@
+name: KinexMed CI — Multi-Platform Verification
+
+on:
+  push:
+    branches: [ main, 'feat/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-and-e2e:
+    name: Backend API, SQLite WAL & Playwright E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js 20 for Web Artifacts
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'web/pnpm-lock.yaml'
+
+      - name: Install Backend & Test Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install playwright pytest-playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Build Web Dist for Playwright E2E
+        run: |
+          cd web
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Run Backend Unit, FSM & Playwright E2E Tests
+        env:
+          PYTHONPATH: .
+        run: |
+          pytest backend/tests -v
+
+  web-check:
+    name: Web Clinician Portal TypeScript & Oxlint Gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'web/pnpm-lock.yaml'
+
+      - name: Install Web Dependencies
+        run: |
+          cd web
+          pnpm install --frozen-lockfile
+
+      - name: TypeScript Compilation & Production Bundle
+        run: |
+          cd web
+          pnpm run build
+
+      - name: Oxlint Static Analysis
+        run: |
+          cd web
+          pnpm run lint
+
+  android-unit-tests:
+    name: Android Edge Biomechanics & Ergonomics Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant Execute Permission to gradlew
+        run: chmod +x android/gradlew
+
+      - name: Run Android Unit Test Suite
+        run: |
+          cd android
+          ./gradlew testDebugUnitTest --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"

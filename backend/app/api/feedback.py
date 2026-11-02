@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -6,6 +7,7 @@ from backend.app.models.feedback import FeedbackModel
 from backend.app.models.session import SessionModel
 from backend.app.schemas.feedback import FeedbackCreate, FeedbackResponse
 
+logger = logging.getLogger("kinexmed.audit.feedback")
 router = APIRouter(prefix="/feedback", tags=["feedback"])
 
 @router.post("", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED, summary="Submit clinician feedback on a session")
@@ -26,6 +28,12 @@ def create_feedback(payload: FeedbackCreate, db: Session = Depends(get_db)):
         db.add(feedback)
         db.commit()
         db.refresh(feedback)
+        logger.info(
+            "AUDIT_LOG: Clinician consultation feedback submitted [SessionID=%s, Author=%s, FeedbackID=%s]",
+            feedback.session_id,
+            feedback.author,
+            feedback.id
+        )
         return feedback
     except Exception as e:
         db.rollback()

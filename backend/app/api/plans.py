@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -5,6 +6,7 @@ from backend.app.core.database import get_db
 from backend.app.models.plan import PlanModel, PlanExerciseModel
 from backend.app.schemas.plan import PlanCreate, PlanUpdate, PlanResponse
 
+logger = logging.getLogger("kinexmed.audit.plans")
 router = APIRouter(prefix="/plans", tags=["plans"])
 
 @router.get("", response_model=List[PlanResponse], summary="List all exercise plans")
@@ -51,6 +53,7 @@ def create_plan(payload: PlanCreate, db: Session = Depends(get_db)):
 
         db.commit()
         db.refresh(db_plan)
+        logger.info("AUDIT_LOG: Exercise plan created [ID=%s, Name=%s, Active=%s]", db_plan.id, db_plan.name, db_plan.is_active)
         return db_plan
     except Exception as e:
         db.rollback()
@@ -94,6 +97,7 @@ def update_plan(plan_id: str, payload: PlanUpdate, db: Session = Depends(get_db)
 
         db.commit()
         db.refresh(plan)
+        logger.info("AUDIT_LOG: Exercise plan updated [ID=%s, Name=%s, Active=%s]", plan.id, plan.name, plan.is_active)
         return plan
     except Exception as e:
         db.rollback()
@@ -112,4 +116,5 @@ def delete_plan(plan_id: str, db: Session = Depends(get_db)):
         )
     db.delete(plan)
     db.commit()
+    logger.info("AUDIT_LOG: Exercise plan deleted [ID=%s]", plan_id)
     return None

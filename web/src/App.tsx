@@ -13,6 +13,7 @@ import { RomChart } from './components/RomChart';
 import { EmptyState } from './components/EmptyState';
 import { PlansView } from './components/PlansView';
 import { ReportsView } from './components/ReportsView';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './App.css';
 
 
@@ -91,7 +92,46 @@ export function App() {
           latestDeviceId={sessions.length > 0 ? sessions[0].device_id : undefined}
         />
 
-        <main className="view-container">
+        {/* Checklist 13-B004 & 20-N015: Disconnected backend notification banner */}
+        {!apiHealthy && !isSyncing && (
+          <div
+            className="offline-banner"
+            role="status"
+            style={{
+              backgroundColor: '#78350F',
+              color: '#FDE68A',
+              padding: '0.6rem 1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.85rem',
+              borderBottom: '1px solid #B45309',
+            }}
+          >
+            <span>
+              <strong>Clinician Backend Disconnected:</strong> Operating in local cached observation mode. Telemetry updates will resume once connected.
+            </span>
+            <button
+              onClick={loadData}
+              disabled={isSyncing}
+              style={{
+                backgroundColor: '#D97706',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '0.25rem 0.75rem',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.8rem',
+              }}
+            >
+              Retry Connection
+            </button>
+          </div>
+        )}
+
+        <ErrorBoundary fallbackTitle="Clinical View Error">
+          <main className="view-container">
           {sessions.length === 0 && currentView === 'OVERVIEW' ? (
             <EmptyState />
           ) : (
@@ -171,6 +211,21 @@ export function App() {
             </>
           )}
         </main>
+        </ErrorBoundary>
+
+        {/* Checklist 76-N003: Clinical non-diagnostic observation disclaimer */}
+        <footer
+          style={{
+            padding: '1rem 1.5rem',
+            textAlign: 'center',
+            color: '#64748B',
+            fontSize: '0.75rem',
+            borderTop: '1px solid #1E293B',
+            marginTop: 'auto',
+          }}
+        >
+          KinexMed is an assistive clinical movement observation tool intended for clinician-guided rehabilitation tracking. It does not provide medical diagnoses or replace clinical examination.
+        </footer>
       </div>
     </div>
   );

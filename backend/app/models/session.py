@@ -9,7 +9,8 @@ from sqlalchemy import (
     BigInteger,
     DateTime,
     ForeignKey,
-    JSON
+    JSON,
+    Index
 )
 from sqlalchemy.orm import relationship
 from backend.app.core.database import Base
@@ -33,6 +34,11 @@ class SessionModel(Base):
     max_knee_angle = Column(Float, default=0.0)
     evidence_failure_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    __table_args__ = (
+        Index("ix_sessions_device_started", "device_id", "started_at"),
+        Index("ix_sessions_exercise_created", "exercise_name", "created_at"),
+    )
 
     reps = relationship(
         "RepModel",

@@ -152,6 +152,9 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Checklist 23-N008 & 18-B007: Keep screen active and lock orientation during exercise observation
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         setContentView(R.layout.activity_exercise)
 
         val exerciseId = intent.getStringExtra(EXTRA_EXERCISE_ID) ?: "squat"
@@ -543,16 +546,17 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Cancel Session?")
-            .setMessage("Are you sure you want to cancel this exercise session? Progress will be discarded without saving.")
-            .setPositiveButton("Yes, Cancel") { _, _ ->
+            .setTitle("Stop Exercise (Safety Stop)")
+            .setMessage("Stop this exercise immediately? If you are experiencing pain, dizziness, fatigue, or joint instability, please rest in a secure seated position and contact your physical therapist or emergency services if symptoms persist.")
+            .setPositiveButton("Stop & Discard") { _, _ ->
                 sessionLifecycleState = SessionLifecycleState.CANCELLED
                 sessionReps.clear()
                 exerciseFsm.reset()
+                voiceFeedback.speakFeedback("Session stopped for safety. Please rest and consult your clinician if you feel discomfort.", isHighPriority = true)
                 updateUiForLifecycleState()
                 finish()
             }
-            .setNegativeButton("Keep Exercising", null)
+            .setNegativeButton("Resume Exercise", null)
             .show()
     }
 
@@ -926,6 +930,7 @@ class ExerciseActivity : AppCompatActivity(), PoseLandmarkerHelper.LandmarkerLis
 
     override fun onDestroy() {
         super.onDestroy()
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         timerJob?.cancel()
         poseLandmarkerHelper.clear()
         voiceFeedback.shutdown()

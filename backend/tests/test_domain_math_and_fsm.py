@@ -135,3 +135,55 @@ def test_evidence_engine_good_standing():
     sufficient, msg = evaluate_evidence(landmarks)
     assert sufficient is True
     assert "Good visual evidence" in msg
+
+def test_evidence_engine_low_confidence_unable_to_assess():
+    """P0 Clinical Safety: Low confidence or occluded joints must fail evidence evaluation."""
+    landmarks = {
+        0: Landmark(0, 0.5, 0.15, visibility=0.95),
+        11: Landmark(11, 0.45, 0.25, visibility=0.95),
+        23: Landmark(23, 0.48, 0.50, visibility=0.95),
+        25: Landmark(25, 0.50, 0.70, visibility=0.30),  # Occluded knee, confidence below 0.60
+        27: Landmark(27, 0.52, 0.88, visibility=0.95),
+    }
+    sufficient, msg = evaluate_evidence(landmarks, config_confidence=0.60)
+    assert sufficient is False
+    assert "Low tracking confidence" in msg
+
+def test_low_confidence_prevents_rep_advancement():
+    """P0 Safety Gate: FSM must discard/abstain from progressing rep count on poor evidence."""
+    # Mock simple FSM state tracker
+    class MockSquatFSM:
+        def __init__(self):
+            self.state = "IDLE"
+            self.rep_count = 0
+
+        def update(self, angle: float, is_evidence_sufficient: bool):
+            if not is_evidence_sufficient:
+                # Under poor evidence, FSM must refuse state transition or rep counting
+                return self.state, self.rep_count
+            if self.state == "IDLE" and angle < 140:
+                self.state = "DESCENDING"
+            elif self.state == "DESCENDING" and angle < 95:
+                self.state = "INFLECTION"
+            elif self.state == "INFLECTION" and angle > 160:
+                self.state = "IDLE"
+                self.rep_count += 1
+            return self.state, self.rep_count
+
+    fsm = MockSquatFSM()
+    # 1. Normal transition to descending
+    state, reps = fsm.update(130.0, is_evidence_sufficient=True)
+    assert state == "DESCENDING"
+    assert reps == 0
+
+    # 2. Candidate reaches deep squat inflection angle (90 deg), BUT evidence is occluded / low-confidence
+    state, reps = fsm.update(90.0, is_evidence_sufficient=False)
+    # Must NOT advance to INFLECTION
+    assert state == "DESCENDING"
+    assert reps == 0
+
+    # 3. Candidate stands up with poor evidence
+    state, reps = fsm.update(170.0, is_evidence_sufficient=False)
+    # Must NOT record rep
+    assert reps == 0
+

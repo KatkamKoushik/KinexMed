@@ -74,8 +74,8 @@ class EvidenceEventResponse(EvidenceEventBase):
 
 class SessionCreate(SessionBase):
     id: Optional[str] = Field(default=None, max_length=64)
-    reps: Optional[List[RepCreate]] = Field(default_factory=list)
-    evidence_events: Optional[List[EvidenceEventCreate]] = Field(default_factory=list)
+    reps: Optional[List[RepCreate]] = Field(default_factory=list, max_length=500)
+    evidence_events: Optional[List[EvidenceEventCreate]] = Field(default_factory=list, max_length=1000)
 
 class SessionSummaryResponse(SessionBase):
     id: str

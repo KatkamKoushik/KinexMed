@@ -50,11 +50,25 @@ class ExercisePreparationActivity : AppCompatActivity() {
         }
 
         btnStartTracking.setOnClickListener {
-            val intent = Intent(this, ExerciseActivity::class.java).apply {
-                putExtra(ExerciseActivity.EXTRA_EXERCISE_ID, exercise.type.id)
-            }
-            startActivity(intent)
-            finish()
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Clinical Safety & Protocol Consent")
+                .setMessage(
+                    "KinexMed is an investigational movement observation and form coaching prototype. It does NOT provide medical diagnoses, replace clinician oversight, or determine medical readiness.\n\n" +
+                    "Protocol & Safety Rules:\n" +
+                    "1. Perform only clinician-approved movements.\n" +
+                    "2. Stop immediately if you experience pain, dizziness, fatigue, or instability.\n" +
+                    "3. Accessible emergency stop controls are available throughout the session.\n\n" +
+                    "Do you acknowledge these clinical limitations and wish to proceed?"
+                )
+                .setPositiveButton("I Acknowledge & Proceed") { _, _ ->
+                    val intent = Intent(this, ExerciseActivity::class.java).apply {
+                        putExtra(ExerciseActivity.EXTRA_EXERCISE_ID, exercise.type.id)
+                    }
+                    startActivity(intent)
+                    finish()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 }
